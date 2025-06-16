@@ -1,8 +1,13 @@
-TODO: Backend: 
-API: Fastfy 
-DATABASE: Postgres w/ Typeorm
-TEST: Vitest
+<h1>TODO:</h1>
+<h3>Backend:</h3> 
+<ul>
+  <li>API: Fastfy </li>
+  <li>DATABASE: Postgres w/ Typeorm </li>
+  <li>TEST: Vitest </li> 
+</ul>
 
-Frontend:
-React
-Tailwind
+<h1>Frontend:</h1>
+<ul>
+  <li>React</li>
+  <li>Tailwind</li>
+</ul>
