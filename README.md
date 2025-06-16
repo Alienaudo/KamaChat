@@ -6,7 +6,7 @@
   <li>TEST: Vitest </li> 
 </ul>
 
-<h1>Frontend:</h1>
+<h3>Frontend:</h3>
 <ul>
   <li>React</li>
   <li>Tailwind</li>
