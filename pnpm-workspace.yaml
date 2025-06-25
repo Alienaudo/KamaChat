@@ -1,0 +1,6 @@
+ignoredBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - argon2
+  - postgresql
+  - prisma
