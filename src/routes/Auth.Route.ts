@@ -21,7 +21,7 @@ class AuthRoutes {
         this.authController = new AuthController(prismaClient);
 
     }
-    //
+
     public authRoutes = async (fastify: FastifyInstance<RawServerDefault>): Promise<void> => {
 
         fastify.post('/signup', this.authController.singup);
