@@ -23,7 +23,7 @@ describe('Tests for User method: Signup', (): void => {
         expect(reply.body).toBeTypeOf('object');
 
         expect(reply.body).toHaveProperty('id');
-        expect(reply.body.id).toBeTypeOf('number');
+        expect(reply.body.id).toBeTypeOf('string');
 
         expect(reply.body).toHaveProperty('name');
         expect(reply.body.name).toBeTypeOf('string');

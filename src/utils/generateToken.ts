@@ -11,7 +11,7 @@ if (!jwtsecret) {
 
 }
 
-export const generateToken = (userId: number, reply: FastifyReply): string => {
+export const generateToken = (userId: string, reply: FastifyReply): string => {
 
     const token: string = jwt.sign({ userId }, jwtsecret, {
 
