@@ -2,7 +2,7 @@ import { exec as execCallback } from 'child_process';
 import { promisify } from 'util';
 import { PrismaClient } from '@prisma/client';
 import 'dotenv/config';
-import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
+import { afterAll, beforeAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import TestAgent from 'supertest/lib/agent';
 import { buildApp } from '../src/api/server';
