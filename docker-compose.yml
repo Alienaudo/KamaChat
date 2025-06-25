@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:17.5-alpine
+    restart: always
+    shm_size: 128mb
+    
+    container_name: postgres
+    
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_HOST: ${DB_HOST:-localhost}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    ports:
+      - 5432:5432
+
+    networks:
+        - dbnet
+
+  db_test:
+    image: postgres:17.5-alpine
+    restart: always
+    shm_size: 128mb
+
+    container_name: testDB
+
+    environment:
+      POSTGRES_DB: testDB
+      POSTGRES_HOST: localhost
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123 
+
+    ports:
+      - 5433:5432
+
+    networks:
+        - dbnet
+
+volumes:
+  pgdata:
+
+networks:
+  dbnet:
+    driver: bridge

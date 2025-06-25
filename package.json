@@ -1,0 +1,37 @@
+{
+  "name": "KamaChat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest --coverage",
+    "start": "nodemon ./dist/src/api/app.js",
+    "build": "pnpm prisma generate && tsc --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.1",
+  "dependencies": {
+    "@fastify/cookie": "11.0.2",
+    "@prisma/client": "^6.10.1",
+    "argon2": "^0.43.0",
+    "dotenv": "^16.5.0",
+    "fastify": "^5.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.0.3",
+    "@types/pg": "^8.15.4",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^3.2.4",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.10.1",
+    "supertest": "^7.1.1",
+    "vitest": "^3.2.4"
+  }
+}
