@@ -20,6 +20,22 @@ class AuthController {
 
         const { name, email, password } = request.body;
 
+        if (!name || !email || password) {
+
+            return reply
+                .status(400)
+                .send({
+
+                    errors: {
+
+                        message: "All fields are required"
+
+                    },
+
+                });
+
+        }
+
         try {
 
             if (password.length < 6) {
