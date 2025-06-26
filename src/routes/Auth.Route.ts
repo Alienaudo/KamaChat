@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync, RawServerDefault } from "fastify";
 import AuthController from "../controllers/Auth.Controller.js";
 import { PrismaClient } from "@prisma/client";
+import { protectRouter } from "../middlewares/ProtectRouter.Middleware.js";
 
 declare module 'fastify' {
 
@@ -29,6 +30,8 @@ class AuthRoutes {
         fastify.post('/login', this.authController.login);
 
         fastify.post('/logout', this.authController.logout);
+
+        fastify.put('/update-profile', { preHandler: protectRouter }, this.authController.update);
 
     };
 
