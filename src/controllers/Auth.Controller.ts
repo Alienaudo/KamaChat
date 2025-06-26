@@ -150,13 +150,13 @@ class AuthController {
 
             if (!isPasswordCorrect) {
 
-                console.error("Invalid credentials");
+                console.error("Wrong password");
 
                 return reply.status(404).send({
 
                     errors: {
 
-                        message: "Invalid credentials"
+                        message: "Wrong password"
 
                     }
 
