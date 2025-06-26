@@ -238,6 +238,8 @@ class AuthController {
 
     };
 
+    public update = async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => { };
+
 };
 
 export default AuthController;
