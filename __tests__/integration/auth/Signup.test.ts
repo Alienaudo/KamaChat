@@ -1,8 +1,8 @@
 import { describe, test, expect } from "vitest";
 import { Response } from "supertest";
-import { testServer } from "../vitest.setup";
+import { testServer } from "../../vitest.setup";
 
-describe('Tests for User method: Signup', (): void => {
+describe('Tests for AuthController method: Signup', (): void => {
 
     const user = {
 
@@ -51,7 +51,7 @@ describe('Tests for User method: Signup', (): void => {
 
     });
 
-    test('Try pass tow users w/ same email', async (): Promise<void> => {
+    test('Try pass tow users with same email', async (): Promise<void> => {
 
         await testServer
             .post('/api/auth/signup')

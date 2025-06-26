@@ -24,7 +24,7 @@ class AuthRoutes {
 
     public authRoutes = async (fastify: FastifyInstance<RawServerDefault>): Promise<void> => {
 
-        fastify.post('/signup', this.authController.singup);
+        fastify.post('/signup', this.authController.signup);
 
         fastify.post('/login', this.authController.login);
 
