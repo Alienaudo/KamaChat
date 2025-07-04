@@ -6,9 +6,12 @@ import { SignupRequestBody } from "../interfaces/SignupRequestBody.Interface.js"
 import { PrismaClient, User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
 import prisma from "../lib/prisma.js";
-import { login, logout, signup } from "../interfaces/Auth.Interfaces.js";
+import { login, logout, signup, update } from "../interfaces/Auth.Interfaces.js";
+import { imageProcessingQueue } from "../queues/ImageProcessing.Queue.js";
+import { saveTemporaryFile } from "../utils/fileSaver.js";
+import { ImageJobData } from "../interfaces/ImageJobData.Interface.js";
 
-class AuthController {
+export class AuthController {
 
     private prisma: PrismaClient;
 
@@ -84,9 +87,9 @@ class AuthController {
 
                 });
 
-            generateToken(newUser.id, reply);
+            await generateToken(newUser.id, reply);
 
-            reply.status(201).send({
+            return reply.status(201).send({
 
                 id: newUser.id,
                 name: newUser.name,
@@ -95,7 +98,7 @@ class AuthController {
 
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
 
@@ -108,13 +111,14 @@ class AuthController {
                         message: "Email already exists"
 
                     }
+
                 });
 
             }
 
             console.error(error);
 
-            reply.status(500).send({
+            return reply.status(500).send({
 
                 errors: {
 
@@ -122,7 +126,7 @@ class AuthController {
 
                 }
 
-            })
+            });
 
         }
 
@@ -161,11 +165,12 @@ class AuthController {
                     }
 
                 });
+
             }
 
             generateToken(user.id, reply);
 
-            reply.status(200).send({
+            return reply.status(200).send({
 
                 id: user.id,
                 name: user.name,
@@ -174,7 +179,7 @@ class AuthController {
 
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
 
@@ -190,12 +195,11 @@ class AuthController {
 
                 });
 
-
             }
 
             console.error(error);
 
-            reply.status(500).send({
+            return reply.status(500).send({
 
                 errors: {
 
@@ -214,17 +218,17 @@ class AuthController {
         try {
 
             reply.cookie("jwt", "", { maxAge: 0 });
-            reply.status(200).send({
+            return reply.status(200).send({
 
                 message: "Logged out successfully"
 
             });
 
-        } catch (error) {
+        } catch (error: unknown) {
 
             console.error(error);
 
-            reply.status(500).send({
+            return reply.status(500).send({
 
                 errors: {
 
@@ -238,8 +242,62 @@ class AuthController {
 
     };
 
-    public update = async (_request: FastifyRequest, reply: FastifyReply): Promise<void> => { };
+    public updateProfPic: update = async (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void> => {
+
+        try {
+
+            const tempFilePath: string = await saveTemporaryFile(request);
+            const userId: string | undefined = request.user?.id;
+
+            if (!userId) {
+
+                console.error("User ID is required");
+
+                return reply.status(404).send({
+
+                    errors: {
+
+                        message: "User ID is required"
+
+                    }
+
+                });
+
+            }
+
+            const jobData: ImageJobData = {
+
+                originalPath: tempFilePath,
+                userId: userId
+
+            };
+
+            await imageProcessingQueue.add('process-profile-pic', jobData);
+
+            console.log(`Task to process user image ${userId} added to queue.`);
+
+            return reply.status(202).send({
+
+                message: "Sua foto de perfil está sendo processada."
+
+            });
+
+        } catch (error: unknown) {
+
+            console.error("Error during update profile picture: ", error);
+
+            return reply.status(500).send({
+
+                errors: {
+
+                    default: "Error during update profile picture"
+
+                }
+
+            });
+
+        }
+    };
 
 };
 
-export default AuthController;

@@ -19,4 +19,10 @@ type logout = {
 
 };
 
-export { signup, login, logout };
+type update = {
+
+    (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
+
+};
+
+export { signup, login, logout, update };
