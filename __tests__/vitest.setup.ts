@@ -2,50 +2,90 @@ import { exec as execCallback } from 'child_process';
 import { promisify } from 'util';
 import { PrismaClient } from '@prisma/client';
 import 'dotenv/config';
-import { afterAll, beforeAll, beforeEach } from 'vitest';
+import { afterAll, beforeAll, beforeEach, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import TestAgent from 'supertest/lib/agent';
 import { buildApp } from '../src/api/server';
 import supertest from 'supertest';
 
+vi.setConfig({
+
+    testTimeout: 30000
+
+});
+
 const exec = promisify(execCallback);
 
-process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://postgres:123@localhost:5433/testDB';
+process.env.DATABASE_URL = 'postgresql://postgres:123@localhost:5433/testDB';
 
 const prisma: PrismaClient = new PrismaClient();
 
 let fastifyApp: FastifyInstance;
 export let testServer: TestAgent;
 
-beforeAll(async (): Promise<void> => {
+const waitForDatabase = async (): Promise<void> => {
 
-    try {
+    let retries: number = 10;
 
-        await exec('docker-compose up -d db_test');
+    while (retries > 0) {
 
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        try {
 
-        await prisma.$executeRawUnsafe(`DROP SCHEMA public CASCADE;`);
-        await prisma.$executeRawUnsafe(`CREATE SCHEMA public;`);
+            await prisma.$connect();
+            console.log('✅ Database connection successful!');
+            await prisma.$disconnect();
+            return;
 
-        await exec(`pnpm prisma db push`);
+        } catch (error: unknown) {
 
-        fastifyApp = buildApp(prisma);
-        await fastifyApp.ready();
-        testServer = supertest(fastifyApp.server);
+            retries--;
+            console.log(`...Database not ready, retrying in 2s. (${retries} retries left)`);
+            await new Promise(res => setTimeout(res, 2000));
 
-    } catch (error) {
-
-        console.error('Error during data base test setup: ', error);
-        process.exit(1);
+        }
 
     }
+
+    throw new Error("❌ Could not connect to the database.");
+
+};
+
+const cleanupDatabase = async (): Promise<void> => {
+
+    const tableNames = await prisma.$queryRaw<Array<{ tablename: string }>>`
+    
+        SELECT tablename FROM pg_tables WHERE schemaname = 'public';
+    
+    `;
+
+    const tablesToTruncate = tableNames
+        .filter(table => table.tablename !== '_prisma_migrations')
+        .map(table => `"public"."${table.tablename}"`)
+        .join(', ');
+
+    if (tablesToTruncate) {
+
+        await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tablesToTruncate} RESTART IDENTITY CASCADE;`);
+
+    }
+
+};
+
+beforeAll(async (): Promise<void> => {
+
+    await waitForDatabase();
+
+    await exec(`pnpm prisma db push`); //TODO: USe migrations
+
+    fastifyApp = buildApp(prisma);
+    await fastifyApp.ready();
+    testServer = supertest(fastifyApp.server);
 
 });
 
 beforeEach(async (): Promise<void> => {
 
-    await prisma.user.deleteMany({});
+    await cleanupDatabase();
 
 });
 
@@ -60,7 +100,5 @@ afterAll(async (): Promise<void> => {
         await fastifyApp.close();
 
     }
-
-    await exec('docker-compose down db_test');
 
 });
