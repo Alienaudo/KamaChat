@@ -87,6 +87,20 @@ export const convertImageToWebP = async (
 
         });
 
+        ffmpegProcess.on('error', (err: Error): void => {
+
+            if (Buffer.isBuffer(ImageData) && fs.existsSync(tempInputPath)) {
+
+                fs.unlinkSync(tempInputPath);
+                console.log(`Temporary input file removed due to error: ${tempInputPath}`);
+
+            }
+
+            console.error(`Failed to start FFmpeg process: ${err.message}`);
+            return reject(err);
+
+        });
+
         ffmpegProcess.on('close', async (code: number): Promise<void> => {
 
             if (code !== 0) {
@@ -111,20 +125,6 @@ export const convertImageToWebP = async (
 
             console.log(`WebP conversion completed successfully: ${tempOutputPath}`);
             return resolve(tempOutputPath);
-
-        });
-
-        ffmpegProcess.on('error', (err: Error): void => {
-
-            if (Buffer.isBuffer(ImageData) && fs.existsSync(tempInputPath)) {
-
-                fs.unlinkSync(tempInputPath);
-                console.log(`Temporary input file removed due to error: ${tempInputPath}`);
-
-            }
-
-            console.error(`Failed to start FFmpeg process: ${err.message}`);
-            return reject(err);
 
         });
 
