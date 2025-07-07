@@ -5,7 +5,7 @@ import { generateToken } from "../utils/generateToken.js";
 import { SignupRequestBody } from "../interfaces/SignupRequestBody.Interface.js";
 import { PrismaClient, User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
-import prisma from "../lib/prisma.js";
+import { prisma } from "../lib/prisma.js";
 import { login, logout, signup, update } from "../interfaces/Auth.Interfaces.js";
 import { imageProcessingQueue } from "../queues/ImageProcessing.Queue.js";
 import { saveTemporaryFile } from "../utils/fileSaver.js";
@@ -87,7 +87,7 @@ export class AuthController {
 
                 });
 
-            await generateToken(newUser.id, reply);
+            generateToken(newUser.id, reply);
 
             return reply.status(201).send({
 
