@@ -1,12 +1,15 @@
+import { FastifyInstance } from "fastify";
 import prisma from "../lib/prisma.js";
 import { buildApp } from "./server.js";
 
 const HOST: string = process.env.HOST || 'localhost';
 const PORT: number = Number(process.env.PORT || 3000);
 
+const app: FastifyInstance = buildApp(prisma);
+
 try {
 
-    buildApp(prisma).listen({
+    app.listen({
 
         host: HOST,
         port: PORT
@@ -19,7 +22,14 @@ try {
 
 } catch (error: unknown) {
 
-    buildApp(prisma).log.error(error);
+    if (app.log) {
+
+        app.log.error(error);
+
+    }
+
+    console.error(error);
+
     process.exit(1);
 
 }

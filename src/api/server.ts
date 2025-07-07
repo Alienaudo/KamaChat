@@ -1,8 +1,9 @@
 import fastify, { FastifyInstance } from "fastify";
-import authRoutes from "../routes/Auth.Route.js";
+import { authRoutesPlugin } from "../routes/Auth.Route.js";
 import 'dotenv/config';
 import cookie from "@fastify/cookie";
 import { PrismaClient } from "@prisma/client";
+import multipart from '@fastify/multipart';
 
 export function buildApp(prismaClient: PrismaClient): FastifyInstance {
 
@@ -14,9 +15,11 @@ export function buildApp(prismaClient: PrismaClient): FastifyInstance {
 
     app.register(cookie);
 
+    app.register(multipart);
+
     app.decorate('prisma', prismaClient);
 
-    app.register(authRoutes, {
+    app.register(authRoutesPlugin, {
 
         prefix: '/api/auth'
 

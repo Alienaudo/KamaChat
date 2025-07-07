@@ -39,6 +39,16 @@ services:
 
     networks:
         - dbnet
+  redis: # Migrar para o valkey
+    image: redis:8-alpine
+    container_name: redis-workers
+    restart: always
+
+    ports:
+      - 6379:6379
+
+    networks:
+       - dbnet
 
 volumes:
   pgdata:

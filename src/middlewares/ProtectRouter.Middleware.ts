@@ -1,14 +1,15 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { DoneFuncWithErrOrRes, FastifyReply, FastifyRequest } from "fastify";
-import prisma from "../lib/prisma";
-import { User } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { SignupRequestBody } from "../interfaces/SignupRequestBody.Interface";
+import UserProtectRouter from "../interfaces/UserProtectRoute.Interface.js";
 
 declare module 'fastify' {
 
     interface FastifyRequest {
 
-        user?: User
+        user?: UserProtectRouter
 
     }
 
@@ -22,7 +23,7 @@ if (!jwtSecret) {
 
 }
 
-export const protectRouter = async (request: FastifyRequest, reply: FastifyReply, next: DoneFuncWithErrOrRes): Promise<void> => {
+export const protectRouter = async (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply, next: DoneFuncWithErrOrRes): Promise<void> => {
 
     try {
 
@@ -50,12 +51,19 @@ export const protectRouter = async (request: FastifyRequest, reply: FastifyReply
 
         }
 
-        const user: User = await prisma.user
+        const user: UserProtectRouter = await prisma
+            .user
             .findUniqueOrThrow({
 
                 where: {
 
                     id: decodedToken.userId
+
+                },
+
+                omit: {
+
+                    password: true
 
                 }
 
@@ -63,9 +71,9 @@ export const protectRouter = async (request: FastifyRequest, reply: FastifyReply
 
         request.user = user;
 
-        next();
+        return next();
 
-    } catch (error) {
+    } catch (error: unknown) {
 
         if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
 
