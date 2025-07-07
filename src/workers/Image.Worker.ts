@@ -1,7 +1,7 @@
 import { Job, Worker } from "bullmq";
 import { convertImageToWebP } from "../lib/convertWebp.js";
 import cloudinary from "../lib/cloudinary.js";
-import prisma from "../lib/prisma.js";
+import { prisma } from "../lib/prisma.js";
 import fs from 'fs';
 import { UploadApiResponse } from "cloudinary";
 import { redisConnection } from "../lib/redis.js";
@@ -17,35 +17,35 @@ const worker: Worker = new Worker<ImageJobData>('image-processing', async (job: 
     try {
 
         convertedImagePath = await convertImageToWebP(originalPath, 75);
-        /*
-                const updateResponse: UploadApiResponse = await cloudinary
-                    .uploader
-                    .upload(convertedImagePath, {
-        
-                        folder: 'profile_pic',
-                        resource_type: 'image'
-        
-                    });
-        
-                await prisma.user.update({
-        
-                    where: {
-        
-                        id: userId,
-                    },
-                    data: {
-        
-                        profilePic: updateResponse.secure_url,
-        
-                    },
-                    omit: {
-        
-                        password: true
-        
-                    }
-        
-                });
-        */
+
+        const updateResponse: UploadApiResponse = await cloudinary
+            .uploader
+            .upload(convertedImagePath, {
+
+                folder: 'profile_pic',
+                resource_type: 'image'
+
+            });
+
+        await prisma.user.update({
+
+            where: {
+
+                id: userId,
+            },
+            data: {
+
+                profilePic: updateResponse.secure_url,
+
+            },
+            omit: {
+
+                password: true
+
+            }
+
+        });
+
         console.log(`User image ${userId} successfully processed and updated!`);
 
     } catch (error: unknown) {
