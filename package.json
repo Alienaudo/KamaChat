@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest --coverage",
-    "build": "pnpm prisma generate && tsc --watch",
+    "test:start": "docker-compose up -d db_test",
+    "test:stop": "docker-compose down",
+    "test": "pnpm test:start && vitest --coverage && pnpm test:stop",
+    "build:dev": "pnpm prisma generate && tsc --watch",
+    "build": "pnpm prisma generate && tsc",
     "start:api": "node dist/src/api/app.js",
     "start:worker": "node dist/src/workers/Image.Worker.js",
     "start": "concurrently \"pnpm start:api\" \"pnpm start:worker\"",
