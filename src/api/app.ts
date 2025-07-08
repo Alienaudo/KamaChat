@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import prisma from "../lib/prisma.js";
+import { prisma } from "../lib/prisma.js";
 import { buildApp } from "./server.js";
 
 const HOST: string = process.env.HOST || 'localhost';

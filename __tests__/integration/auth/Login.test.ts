@@ -57,7 +57,7 @@ describe('Tests for AuthController method: Login', (): void => {
                 "password": "fwfwfwffefwdadwda"
 
             })
-            .expect(404)
+            .expect(401)
             .expect('Content-Type', /json/);
 
         expect(reply.body).toBeTypeOf('object');
@@ -78,7 +78,7 @@ describe('Tests for AuthController method: Login', (): void => {
                 "password": "wrongpassword"
 
             })
-            .expect(404)
+            .expect(401)
             .expect('Content-Type', /json/);
 
         expect(reply.body).toBeTypeOf('object');
