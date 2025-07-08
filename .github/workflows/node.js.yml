@@ -1,0 +1,49 @@
+name: CI - Run Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: "postgresql://postgres:123@localhost:5432/usersDB"
+      HOST: "localhost"
+      PORT: 3000
+      NODE_ENV: "development"
+      DB_NAME: "usersDB"
+      DB_HOST: "localhost"
+      DB_USER: "postgres"
+      DB_PASSWORD: "123"
+      JWT_SECRET: "test"
+
+    steps:
+      # Checks out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Sets up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23'
+          cache: 'pnpm'
+
+      # Installs PNPM
+      - name: Install PNPM
+        run: npm install -g pnpm
+
+      # Installs project dependencies
+      - name: Install dependencies
+        run: pnpm install
+
+      # Builds the project
+      - name: Build project
+        run: pnpm build
+
+      # Runs tests with Vitest
+      - name: Run tests
+        run: pnpm test
