@@ -9,12 +9,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17.5-alpine
+        env:
+          POSTGRES_DB: testDB
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 123
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
-      DATABASE_URL: "postgresql://postgres:123@localhost:5432/usersDB"
+      DATABASE_URL: "postgresql://postgres:123@localhost:5433/testDB"
       HOST: "localhost"
       PORT: 3000
       NODE_ENV: "development"
-      DB_NAME: "usersDB"
+      DB_NAME: "testDB"
       DB_HOST: "localhost"
       DB_USER: "postgres"
       DB_PASSWORD: "123"
@@ -39,6 +54,14 @@ jobs:
       # Installs project dependencies
       - name: Install dependencies
         run: pnpm install
+
+      # Generates Prisma client
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      # Applies Prisma migrations to test database
+      - name: Apply Prisma migrations
+        run: pnpm prisma migrate deploy
 
       # Builds the project
       - name: Build project
