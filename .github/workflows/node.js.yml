@@ -55,14 +55,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # Generates Prisma client
-      - name: Generate Prisma client
-        run: pnpm prisma generate
-
-      # Applies Prisma migrations to test database
-      - name: Apply Prisma migrations
-        run: pnpm prisma migrate deploy
-
       # Builds the project
       - name: Build project
         run: pnpm build
