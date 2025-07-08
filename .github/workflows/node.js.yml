@@ -48,8 +48,8 @@ jobs:
           cache: 'pnpm'
 
       # Installs PNPM
-      - name: Install PNPM
-        run: npm install -g pnpm
+ #     - name: Install PNPM
+#        run: npm install -g pnpm
 
       # Installs project dependencies
       - name: Install dependencies
