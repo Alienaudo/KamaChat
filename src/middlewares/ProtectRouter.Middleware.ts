@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { DoneFuncWithErrOrRes, FastifyReply, FastifyRequest } from "fastify";
-import prisma from "../lib/prisma.js";
+import { prisma } from "../lib/prisma.js";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { SignupRequestBody } from "../interfaces/SignupRequestBody.Interface";
 import UserProtectRouter from "../interfaces/UserProtectRoute.Interface.js";
