@@ -4,6 +4,7 @@ import 'dotenv/config';
 import cookie from "@fastify/cookie";
 import { PrismaClient } from "@prisma/client";
 import multipart from '@fastify/multipart';
+import fastifyRateLimit from "@fastify/rate-limit";
 
 export function buildApp(prismaClient: PrismaClient): FastifyInstance {
 
@@ -14,6 +15,12 @@ export function buildApp(prismaClient: PrismaClient): FastifyInstance {
     });
 
     app.register(cookie);
+
+    app.register(fastifyRateLimit, {
+
+        global: false
+
+    });
 
     app.register(multipart);
 

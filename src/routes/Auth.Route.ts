@@ -27,11 +27,38 @@ class AuthRoutes {
 
         fastify.post('/signup', this.authController.signup);
 
-        fastify.post('/login', this.authController.login);
+        fastify.post('/login', {
+
+            config: {
+
+                rateLimit: {
+
+                    max: 5,
+                    timeWindow: '1 minute'
+
+                }
+
+            }
+
+        }, this.authController.login);
 
         fastify.post('/logout', this.authController.logout);
 
-        fastify.put('/update-profilepic', { preHandler: protectRouter }, this.authController.updateProfPic);
+        fastify.put('/update-profilepic', {
+
+            preHandler: protectRouter,
+            config: {
+
+                rateLimit: {
+
+                    max: 3,
+                    timeWindow: '10 minute'
+
+                }
+
+            }
+
+        }, this.authController.updateProfPic);
 
         //TODO:
         //fastify.put('/update-profileName', { preHandler: protectRouter }, this.authController.updateProfName);
