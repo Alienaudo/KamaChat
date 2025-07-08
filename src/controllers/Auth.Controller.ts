@@ -156,7 +156,7 @@ export class AuthController {
 
                 console.error("Wrong password");
 
-                return reply.status(404).send({
+                return reply.status(401).send({
 
                     errors: {
 
@@ -185,7 +185,7 @@ export class AuthController {
 
                 console.error("User not found");
 
-                return reply.status(404).send({
+                return reply.status(401).send({
 
                     errors: {
 
