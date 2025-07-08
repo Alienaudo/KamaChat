@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test:start": "docker-compose up -d db_test",
+    "test:start": "docker-compose up -d",
     "test:stop": "docker-compose down",
-    "test": "pnpm test:start && vitest --coverage && pnpm test:stop",
+    "test": "pnpm test:start && vitest --watch=false --coverage && pnpm test:stop",
     "build:dev": "pnpm prisma generate && tsc --watch",
     "build": "pnpm prisma generate && tsc",
     "start:api": "node dist/src/api/app.js",
