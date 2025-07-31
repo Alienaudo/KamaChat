@@ -52,8 +52,8 @@ class ChannelRoute {
 
                 rateLimit: {
 
-                    max: 10,
-                    timeWindow: '10 minute'
+                    max: 3,
+                    timeWindow: '35 minute'
 
                 }
 

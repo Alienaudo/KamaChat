@@ -23,7 +23,7 @@ const prisma: PrismaClient = new PrismaClient();
 let fastifyApp: FastifyInstance;
 export let testServer: TestAgent;
 
-const waitForDatabase = async (): Promise<void> => {
+const waitForDatabase: () => Promise<void> = async (): Promise<void> => {
 
     let retries: number = 10;
 
@@ -38,7 +38,7 @@ const waitForDatabase = async (): Promise<void> => {
 
         } catch (error: unknown) {
 
-            retries--;
+            --retries;
             console.log(`...Database not ready, retrying in 2s. (${retries} retries left)`);
             await new Promise(res => setTimeout(res, 2000));
 
@@ -50,15 +50,15 @@ const waitForDatabase = async (): Promise<void> => {
 
 };
 
-const cleanupDatabase = async (): Promise<void> => {
+const cleanupDatabase: () => Promise<void> = async (): Promise<void> => {
 
-    const tableNames = await prisma.$queryRaw<Array<{ tablename: string }>>`
+    const tableNames: { tablename: string }[] = await prisma.$queryRaw<Array<{ tablename: string }>>`
     
         SELECT tablename FROM pg_tables WHERE schemaname = 'public';
     
     `;
 
-    const tablesToTruncate = tableNames
+    const tablesToTruncate: string = tableNames
         .filter(table => table.tablename !== '_prisma_migrations')
         .map(table => `"public"."${table.tablename}"`)
         .join(', ');
@@ -86,6 +86,42 @@ beforeAll(async (): Promise<void> => {
 beforeEach(async (): Promise<void> => {
 
     await cleanupDatabase();
+
+    await prisma.user.createMany({
+
+        data: [
+
+            {
+
+                "nick": "TestUser_01",
+                "name": "Arnaldo Romario",
+                "email": "arnaldozo12@gmail.com",
+                "hasedPassword": "fwfwfwffefwdadwda",
+                "profilePic": null
+
+            },
+            {
+
+                "nick": "TestUser_02",
+                "name": "Rogerio Francisco",
+                "email": "rogeriao5432@gmail.com",
+                "hasedPassword": "dnjsvnsns",
+                "profilePic": null
+
+            },
+            {
+
+                "nick": "TestUser_03",
+                "name": "Marcia Pereira",
+                "email": "contactmarsia88@gmail.com",
+                "hasedPassword": "dwkdkdnnnne",
+                "profilePic": null
+
+            }
+
+        ]
+
+    });
 
 });
 
