@@ -5,3 +5,5 @@ coverage
 
 .env
 .env.test
+/src/rabbitmq-certs/*
+!/src/rabbitmq-certs/.gitkeep
