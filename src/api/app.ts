@@ -1,6 +1,7 @@
-import { FastifyInstance } from "fastify";
+import { FastifyInstance } from "fastify/types/instance.js";
 import { prisma } from "../lib/prisma.js";
 import { buildApp } from "./server.js";
+import "dotenv/config.js";
 
 const HOST: string = process.env.HOST || 'localhost';
 const PORT: number = Number(process.env.PORT || 3000);
