@@ -1,90 +1,136 @@
-import { Job, Worker } from "bullmq";
-import { ChannelImageJobData } from "../../../interfaces/Channel.ImageJobData.Interface.js";
-import { convertImageToWebP } from "../../../lib/convertWebp.js";
+import { ConsumeMessage } from "amqplib";
 import { UploadApiResponse } from "cloudinary";
+import sharp from "sharp";
 import cloudinary from "../../../lib/cloudinary.js";
 import { prisma } from "../../../lib/prisma.js";
-import { redisConnection } from "../../../lib/redis.js";
+import { getChannel } from "../../../lib/rabbitmq.js";
 import { unlink } from "fs/promises";
 
-export const worker: Worker = new Worker<ChannelImageJobData>('image-processing', async (job: Job<ChannelImageJobData>): Promise<string> => {
+const processImage = async (): Promise<void> => {
 
-    const { channelId, originalPath } = job.data;
-    let convertedImagePath: string | undefined;
+    const { connection, channel } = await getChannel();
 
-    try {
+    const queue: string = 'process-channel-pic';
 
-        convertedImagePath = await convertImageToWebP(originalPath, 75);
+    await channel.assertQueue(queue, { durable: true });
 
-        const updateResponse: UploadApiResponse = await cloudinary
-            .uploader
-            .upload(convertedImagePath, {
+    channel.prefetch(1);
 
-                folder: 'channel_pic',
-                resource_type: 'image'
+    console.log('✅ Worker started, waiting for jobs in the queue: ', queue);
 
-            });
+    channel.consume(queue, async (msg: ConsumeMessage | null): Promise<void> => {
 
-        const updatedChannel = await prisma.channel
-            .update({
+        if (!msg?.content) return;
 
-                where: {
-
-                    id: channelId
-
-                },
-                data: {
-
-                    channelPic: updateResponse.secure_url
-
-                },
-                select: {
-
-                    channelPic: true
-
-                }
-
-            });
-
-        if (!updatedChannel.channelPic) throw new Error('Channel picture not updated');
-
-        return updatedChannel.channelPic;
-
-    } catch (error: unknown) {
-
-        console.error(`Failed to process job ${job.id} for channel ${channelId}: `, error);
-        throw error;
-
-    } finally {
+        let tempFilePath: string | null = null;
 
         try {
 
-            if (originalPath) await unlink(originalPath);
-            if (convertedImagePath) await unlink(convertedImagePath);
+            console.log('📥 Message received. Processing...');
 
-        } catch (cleanupError) {
+            const data: {
 
-            console.error('Failed to clean up temporary files:', cleanupError);
+                image: string,
+                channelId: bigint
 
-        }
+            } = JSON.parse(msg.content.toString());
 
-    }
+            console.log('Starting process...');
 
-}, {
+            const img: Buffer = Buffer.from(data.image, "base64");
 
-    connection: redisConnection
+            const processedImage: Buffer = await sharp(img)
+                .toFormat('avif')
+                .toBuffer();
 
-});
+            const updateResponse: UploadApiResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
 
-worker.on('failed', (job: Job<any, any, string> | undefined, err: Error): void => {
+                const updateStream = cloudinary
+                    .uploader
+                    .upload_stream({
 
-    console.log(`Task ${job?.id} failed with error: ${err.message}`);
+                        folder: 'channel_pic',
+                        resource_type: 'image'
 
-});
+                    }, (error, result) => {
 
-worker.on('completed', (job: Job<any, any, string>): void => {
+                        if (error) return reject(error);
+                        if (result) return resolve(result);
 
-    console.log(`Task ${job.id} completed successfully!`);
+                    });
 
-});
+                updateStream.end(processedImage);
 
+            });
+
+            const updatedChannel: {
+
+                channelPic: string | null
+
+            } = await prisma.channel
+                .update({
+
+                    where: {
+
+                        id: data.channelId
+
+                    },
+                    data: {
+
+                        channelPic: updateResponse.secure_url
+
+                    },
+                    select: {
+
+                        channelPic: true
+
+                    }
+
+                });
+
+            if (!updatedChannel.channelPic) throw new Error('Channel picture not updated');
+
+            console.log('✅ Work successfully completed for the channel: ', data.channelId);
+            return channel.ack(msg);
+
+        } catch (error: unknown) {
+
+            if (tempFilePath) {
+
+                try {
+
+                    await unlink(tempFilePath);
+
+                } catch (cleanupError) {
+
+                    console.error({
+
+                        message: 'Error cleaning temporary file after failure: ',
+                        error: cleanupError
+
+                    });
+
+                };
+
+            };
+
+            channel.nack(msg, false, true);
+            console.error({
+
+                message: 'Error processing image: ',
+                erro: error
+
+            });
+
+        } finally {
+
+            channel.close();
+            connection.close();
+
+        };
+
+    });
+
+};
+
+processImage();
