@@ -7,12 +7,89 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum Role {
+    admin
+    member
+}
+
+enum MediaType {
+    image
+    video
+    audio
+}
+
+enum DocType {
+    txt
+    pdf
+    xml
+    odt
+    doc
+    docx
+    xlsx
+    html
+    csv
+    md
+}
+
 model User {
-    id         String   @id @default(uuid())
-    email      String   @unique
-    name       String   @db.VarChar(100)
-    password   String   @db.VarChar(255)
-    profilePic String?  @map("profile_pic")
-    createdAt  DateTime @default(now()) @map("created_at")
-    updatedAt  DateTime @updatedAt @map("updated_at")
+    id            String   @id @default(uuid(7)) @db.Uuid
+    email         String   @unique @db.VarChar(100)
+    nick          String   @unique @db.VarChar(25)
+    name          String   @db.VarChar(35)
+    hasedPassword String   @map("hased_password") @db.VarChar(255)
+    profilePic    String?  @default("default-avatar.avif") @map("profile_pic") @db.Text
+    createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+    updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+    sentMessages     Message[]       @relation(name: "SentMessages")
+    receivedMessages Message[]       @relation(name: "ReceivedMessages")
+    channelsMember   ChannelMember[] @relation(name: "UserChannels")
+
+    @@index([email])
+    @@index([nick])
+}
+
+model Channel {
+    id          BigInt  @id @db.BigInt // Snowflake ID w/ BigInt
+    name        String  @db.VarChar(100)
+    description String?  @db.Text
+    channelPic  String? @default("default-avatar.avif") @map("channel_pic") @db.Text
+
+    members  ChannelMember[] @relation(name: "ChannelMemberships")
+    messages Message[]       @relation(name: "ChannelMessages")
+}
+
+model ChannelMember {
+    channelId BigInt   @map("channel_id") @db.BigInt
+    userId    String   @map("user_id") @db.Uuid
+    role      Role     @default(member) // "admin" ou "member"
+    joinedAt  DateTime @default(now()) @map("joined_at") @db.Timestamptz()
+
+    channel Channel @relation(name: "ChannelMemberships", fields: [channelId], references: [id], onDelete: Cascade)
+    user    User    @relation(name: "UserChannels", fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([channelId, userId])
+    @@index([channelId])
+    @@index([userId])
+}
+
+model Message {
+    id         Int        @id @default(autoincrement())
+    senderId   String     @map("sender_id") @db.Uuid
+    receiverId String?    @map("receiver_id") @db.Uuid
+    channelId  BigInt?    @map("channel_id") @db.BigInt
+    text       String?    @db.Text
+    media      String?    @db.Text
+    mediaType  MediaType? @map("media_type")
+    doc        String?    @db.Text
+    docType    DocType?   @map("doc_type")
+    createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+
+    sender   User     @relation(name: "SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+    receiver User?    @relation(name: "ReceivedMessages", fields: [receiverId], references: [id], onDelete: SetNull)
+    channel  Channel? @relation(name: "ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
+
+    @@index([senderId, createdAt])
+    @@index([receiverId, createdAt])
+    @@index([channelId, createdAt])
 }
