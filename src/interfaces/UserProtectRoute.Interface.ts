@@ -1,4 +1,4 @@
-export default interface UserProtectRouter {
+export interface UserProtectRouter {
 
     id: string,
     email: string,

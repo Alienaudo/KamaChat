@@ -39,6 +39,7 @@ services:
 
     networks:
         - dbnet
+
   redis: # Migrar para o valkey
     image: redis:8-alpine
     container_name: redis-workers
@@ -50,9 +51,41 @@ services:
     networks:
        - dbnet
 
+  rabbitmq:
+    image: rabbitmq:4.1.2-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 127.0.0.1:5672:5672
+      - 15672:15672 
+    volumes:
+      - ./src/rabbitmq-certs:/etc/certs/rabbitmq-certs
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - rabbitmq_data:/var/lib/rabbitmq 
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  app:
+    build: .
+    ports:
+      - 3000:3000
+    depends_on:
+      - rabbitmq
+      - redis
+      - db
+    networks:
+      - dbnet
+      - app_network
+
 volumes:
   pgdata:
+  rabbitmq_data:
 
 networks:
   dbnet:
     driver: bridge
+  app_network:

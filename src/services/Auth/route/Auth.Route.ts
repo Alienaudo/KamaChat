@@ -1,7 +1,9 @@
-import { FastifyInstance, FastifyPluginAsync, RawServerDefault } from "fastify";
-import { AuthController } from "../controllers/Auth.Controller.js";
+import { AuthController } from "../controller/Auth.Controller.js";
 import { PrismaClient } from "@prisma/client";
-import { protectRouter } from "../middlewares/ProtectRouter.Middleware.js";
+import { protectRouter } from "../../../middlewares/ProtectRouter.Middleware.js";
+import { FastifyInstance } from "fastify/types/instance.js";
+import { FastifyPluginAsync } from "fastify/types/plugin.js";
+import { RawServerDefault } from "fastify";
 
 declare module 'fastify' {
 
@@ -75,8 +77,8 @@ class AuthRoutes {
 
 export const authRoutesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance<RawServerDefault>): Promise<void> => {
 
-    const prismaInstance = fastify.prisma;
-    const authRoutesInstance = new AuthRoutes(prismaInstance);
+    const prismaInstance: PrismaClient = fastify.prisma;
+    const authRoutesInstance: AuthRoutes = new AuthRoutes(prismaInstance);
     await authRoutesInstance.authRoutes(fastify);
 
 };

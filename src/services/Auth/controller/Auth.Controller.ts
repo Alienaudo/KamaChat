@@ -1,15 +1,16 @@
-import { FastifyReply, FastifyRequest } from "fastify";
 import * as crypto from "crypto";
 import * as argon2 from "argon2";
-import { generateToken } from "../utils/generateToken.js";
-import { SignupRequestBody } from "../interfaces/SignupRequestBody.Interface.js";
-import { PrismaClient, User } from '@prisma/client';
+import { generateToken } from "../../../utils/generateToken.js";
+import { SignupRequestBody } from "../../../interfaces/SignupRequestBody.Interface.js";
+import { PrismaClient, User } from '@prisma/client/default.js';
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
-import { prisma } from "../lib/prisma.js";
-import { login, logout, signup, update } from "../interfaces/Auth.Interfaces.js";
-import { imageProcessingQueue } from "../queues/ImageProcessing.Queue.js";
-import { saveTemporaryFile } from "../utils/fileSaver.js";
-import { ImageJobData } from "../interfaces/ImageJobData.Interface.js";
+import { prisma } from "../../../lib/prisma.js";
+import { login, logout, signup, update } from "../../../interfaces/Auth.Interface.js";
+import { saveTemporaryFile } from "../../../utils/fileSaver.js";
+import { ProfImageJobData } from "../../../interfaces/Prof.ImageJobData.Interface.js";
+import { ProfImageProcessingQueue } from "../queue/ProfImageProcessing.Queue.js";
+import { FastifyRequest } from "fastify/types/request.js";
+import { FastifyReply } from "fastify/types/reply.js";
 
 export class AuthController {
 
@@ -23,25 +24,25 @@ export class AuthController {
 
     public signup: signup = async (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void> => {
 
-        const { name, email, password } = request.body;
-
-        if (!name || !email || !password) {
-
-            return reply
-                .status(400)
-                .send({
-
-                    errors: {
-
-                        message: "All fields are required"
-
-                    },
-
-                });
-
-        }
-
         try {
+
+            const { name, nick, email, password } = request.body;
+
+            if (!name || !nick || !email || !password) {
+
+                return reply
+                    .status(400)
+                    .send({
+
+                        error: {
+
+                            message: "All fields are required"
+
+                        },
+
+                    });
+
+            }
 
             if (password.length < 6) {
 
@@ -49,7 +50,7 @@ export class AuthController {
                     .status(400)
                     .send({
 
-                        errors: {
+                        error: {
 
                             message: "password must be at least 6 characters"
 
@@ -80,8 +81,9 @@ export class AuthController {
                     data: {
 
                         name: name,
+                        nick: nick,
                         email: email,
-                        password: hashedPassword
+                        hasedPassword: hashedPassword
 
                     },
 
@@ -92,7 +94,7 @@ export class AuthController {
             return reply.status(201).send({
 
                 id: newUser.id,
-                name: newUser.name,
+                nick: newUser.nick,
                 email: newUser.email,
                 profilePic: newUser.profilePic
 
@@ -106,7 +108,7 @@ export class AuthController {
 
                 return reply.status(400).send({
 
-                    errors: {
+                    error: {
 
                         message: "Email already exists"
 
@@ -120,7 +122,7 @@ export class AuthController {
 
             return reply.status(500).send({
 
-                errors: {
+                error: {
 
                     default: "Error during singup"
 
@@ -150,7 +152,7 @@ export class AuthController {
 
                 });
 
-            const isPasswordCorrect: boolean = await argon2.verify(user.password, password);
+            const isPasswordCorrect: boolean = await argon2.verify(user.hasedPassword, password);
 
             if (!isPasswordCorrect) {
 
@@ -158,7 +160,7 @@ export class AuthController {
 
                 return reply.status(401).send({
 
-                    errors: {
+                    error: {
 
                         message: "Wrong password"
 
@@ -173,7 +175,7 @@ export class AuthController {
             return reply.status(200).send({
 
                 id: user.id,
-                name: user.name,
+                nick: user.nick,
                 email: user.email,
                 profilePic: user.profilePic
 
@@ -187,7 +189,7 @@ export class AuthController {
 
                 return reply.status(401).send({
 
-                    errors: {
+                    error: {
 
                         message: "User not found"
 
@@ -201,7 +203,7 @@ export class AuthController {
 
             return reply.status(500).send({
 
-                errors: {
+                error: {
 
                     default: "Error during login"
 
@@ -230,7 +232,7 @@ export class AuthController {
 
             return reply.status(500).send({
 
-                errors: {
+                error: {
 
                     default: "Error during logout"
 
@@ -255,7 +257,7 @@ export class AuthController {
 
                 return reply.status(404).send({
 
-                    errors: {
+                    error: {
 
                         message: "User ID is required"
 
@@ -265,20 +267,20 @@ export class AuthController {
 
             }
 
-            const jobData: ImageJobData = {
+            const jobData: ProfImageJobData = {
 
                 originalPath: tempFilePath,
                 userId: userId
 
             };
 
-            await imageProcessingQueue.add('process-profile-pic', jobData);
+            await ProfImageProcessingQueue.add('process-profile-pic', jobData);
 
             console.log(`Task to process user image ${userId} added to queue.`);
 
             return reply.status(202).send({
 
-                message: "Sua foto de perfil está sendo processada."
+                message: "Your profile picture is being processed."
 
             });
 
@@ -288,7 +290,7 @@ export class AuthController {
 
             return reply.status(500).send({
 
-                errors: {
+                error: {
 
                     default: "Error during update profile picture"
 

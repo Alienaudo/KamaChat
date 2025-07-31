@@ -1,9 +1,11 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { DoneFuncWithErrOrRes, FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../lib/prisma.js";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { SignupRequestBody } from "../interfaces/SignupRequestBody.Interface";
-import UserProtectRouter from "../interfaces/UserProtectRoute.Interface.js";
+import { UserProtectRouter } from "../interfaces/UserProtectRoute.Interface.js";
+import { FastifyRequest } from "fastify/types/request.js";
+import { FastifyReply } from "fastify/types/reply.js";
+import { DoneFuncWithErrOrRes } from "fastify";
+import { ProtectRouter } from "../interfaces/ProtectRouter.Interface.js";
 
 declare module 'fastify' {
 
@@ -23,7 +25,7 @@ if (!jwtSecret) {
 
 }
 
-export const protectRouter = async (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply, next: DoneFuncWithErrOrRes): Promise<void> => {
+export const protectRouter: ProtectRouter = async (request: FastifyRequest, reply: FastifyReply, next: DoneFuncWithErrOrRes): Promise<void> => {
 
     try {
 
@@ -63,7 +65,7 @@ export const protectRouter = async (request: FastifyRequest<{ Body: SignupReques
 
                 omit: {
 
-                    password: true
+                    hasedPassword: true
 
                 }
 

@@ -1,13 +1,13 @@
 import { Job, Worker } from "bullmq";
-import { convertImageToWebP } from "../lib/convertWebp.js";
-import cloudinary from "../lib/cloudinary.js";
-import { prisma } from "../lib/prisma.js";
+import { convertImageToWebP } from "../../../lib/convertWebp.js";
+import cloudinary from "../../../lib/cloudinary.js";
+import { prisma } from "../../../lib/prisma.js";
 import fs from 'fs';
 import { UploadApiResponse } from "cloudinary";
-import { redisConnection } from "../lib/redis.js";
-import { ImageJobData } from "../interfaces/ImageJobData.Interface.js";
+import { redisConnection } from "../../../lib/redis.js";
+import { ProfImageJobData } from "../../../interfaces/Prof.ImageJobData.Interface.js";
 
-const worker: Worker = new Worker<ImageJobData>('image-processing', async (job: Job<ImageJobData>): Promise<void> => {
+const worker: Worker = new Worker<ProfImageJobData>('image-processing', async (job: Job<ProfImageJobData>): Promise<void> => {
 
     const { originalPath, userId } = job.data;
     let convertedImagePath: string | undefined;
@@ -40,7 +40,7 @@ const worker: Worker = new Worker<ImageJobData>('image-processing', async (job: 
             },
             omit: {
 
-                password: true
+                hasedPassword: true
 
             }
 
@@ -89,4 +89,4 @@ worker.on('completed', (job: Job<any, any, string>): void => {
 
 });
 
-console.log("Worker de processamento de imagem iniciado...");
+console.log("Image process started...");

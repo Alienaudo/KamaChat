@@ -1,9 +1,8 @@
 import { FastifyRequest } from "fastify";
-import path, { dirname } from "path";
+import { dirname, join } from "path";
 import pump from "pump";
 import { fileURLToPath } from "url";
-import fs from 'fs';
-import { v7 as uuidv7 } from 'uuid';
+import { existsSync, mkdirSync, createWriteStream } from 'fs';
 import { MultipartFile } from "@fastify/multipart";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,11 +20,11 @@ export const saveTemporaryFile = async (request: FastifyRequest): Promise<string
 
     try {
 
-        const tempDir: string = path.join(__dirname, '..', '..', 'tmp'); // Ajuste o caminho conforme sua estrutura
+        const tempDir: string = join(__dirname, '..', '..', 'tmp');
 
-        if (!fs.existsSync(tempDir)) {
+        if (!existsSync(tempDir)) {
 
-            fs.mkdirSync(tempDir, {
+            mkdirSync(tempDir, {
 
                 recursive: true
 
@@ -33,17 +32,17 @@ export const saveTemporaryFile = async (request: FastifyRequest): Promise<string
 
         }
 
-        const tempFileName: string = `${uuidv7()}-${data.filename}`;
-        const tempFilePath: string = path.join(tempDir, tempFileName);
+        const tempFileName: string = `${Date.now()}-${data.filename}`;
+        const tempFilePath: string = join(tempDir, tempFileName);
 
-        pump(data.file, fs.createWriteStream(tempFilePath));
+        pump(data.file, createWriteStream(tempFilePath));
 
         return tempFilePath;
 
     } catch (error: unknown) {
 
-        console.error("Falha no stream ao salvar o arquivo:", error);
-        throw new Error('Ocorreu um erro interno ao salvar o arquivo.');
+        console.error("Error in stream while saving file: ", error);
+        throw new Error("Error during save file");
 
     }
 
