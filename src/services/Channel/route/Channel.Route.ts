@@ -52,7 +52,7 @@ class ChannelRoute {
 
                 rateLimit: {
 
-                    max: 2000000000,
+                    max: 10,
                     timeWindow: '10 minute'
 
                 }
@@ -69,8 +69,8 @@ class ChannelRoute {
 
                 rateLimit: {
 
-                    max: 2000000000,
-                    timeWindow: '10 minute'
+                    max: 3,
+                    timeWindow: '30 minute'
 
                 }
 
