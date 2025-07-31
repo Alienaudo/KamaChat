@@ -1,25 +1,26 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyRequest } from "fastify/types/request";
 import { SignupRequestBody } from "./SignupRequestBody.Interface";
+import { FastifyReply } from "fastify/types/reply";
 
-type signup = {
-
-    (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
-
-};
-
-type login = {
+interface signup {
 
     (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
 
 };
 
-type logout = {
+interface login {
 
     (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
 
 };
 
-type update = {
+interface logout {
+
+    (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
+
+};
+
+interface update {
 
     (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
 

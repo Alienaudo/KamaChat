@@ -1,4 +1,4 @@
-export interface ImageJobData {
+export interface ProfImageJobData {
 
     originalPath: string;
     userId: string;
