@@ -1,23 +1,8 @@
-import { beforeAll, describe, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { testServer } from "../../vitest.setup";
 import { Response } from "supertest";
 
 describe('Tests for AuthController method: Login', (): void => {
-
-    beforeAll(async (): Promise<void> => {
-
-        await testServer
-            .post('/api/auth/signup')
-            .send({
-
-                "name": "Arnaldo Romario",
-                "email": "arnaldozo12@gmail.com",
-                "password": "fwfwfwffefwdadwda"
-
-            })
-            .expect(201);
-
-    });
 
     test('Must log in', async (): Promise<void> => {
 
@@ -31,6 +16,8 @@ describe('Tests for AuthController method: Login', (): void => {
             })
             .expect(200)
             .expect('Content-Type', /json/);
+
+        expect(reply.headers).toHaveProperty('set-cookie');
 
         expect(reply.body).toBeTypeOf('object');
 
