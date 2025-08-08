@@ -3,64 +3,54 @@ services:
     image: postgres:17.5-alpine
     restart: always
     shm_size: 128mb
-    
     container_name: postgres
-    
     environment:
       POSTGRES_DB: ${DB_NAME}
-      POSTGRES_HOST: ${DB_HOST:-localhost}
-      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_HOST: ${DB_HOST}
+      POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-
     volumes:
       - pgdata:/var/lib/postgresql/data
-
     ports:
       - 5432:5432
-
     networks:
-        - dbnet
+        - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   db_test:
     image: postgres:17.5-alpine
     restart: always
     shm_size: 128mb
-
     container_name: testDB
-
     environment:
       POSTGRES_DB: testDB
       POSTGRES_HOST: localhost
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123 
-
     ports:
       - 5433:5432
-
     networks:
-        - dbnet
-
-  redis: # Migrar para o valkey
-    image: redis:8-alpine
-    container_name: redis-workers
-    restart: always
-
-    ports:
-      - 6379:6379
-
-    networks:
-       - dbnet
-
+        - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+ 
   rabbitmq:
     image: rabbitmq:4.1.2-management-alpine
     container_name: rabbitmq
     ports:
-      - 127.0.0.1:5672:5672
+      - 5671:5671
       - 15672:15672 
     volumes:
       - ./src/rabbitmq-certs:/etc/certs/rabbitmq-certs
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-      - rabbitmq_data:/var/lib/rabbitmq 
+      - rabbitmq_data:/var/lib/rabbitmq  
     networks:
       - app_network
     healthcheck:
@@ -69,23 +59,11 @@ services:
       timeout: 30s
       retries: 3
 
-  app:
-    build: .
-    ports:
-      - 3000:3000
-    depends_on:
-      - rabbitmq
-      - redis
-      - db
-    networks:
-      - dbnet
-      - app_network
-
 volumes:
   pgdata:
   rabbitmq_data:
 
 networks:
-  dbnet:
-    driver: bridge
   app_network:
+    driver: bridge
+
