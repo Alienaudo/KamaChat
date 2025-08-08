@@ -27,11 +27,11 @@ try {
 
         app.log.error(error);
 
-    }
+    };
 
     console.error(error);
 
     process.exit(1);
 
-}
+};
 
