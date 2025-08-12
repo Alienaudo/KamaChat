@@ -1,10 +1,18 @@
 import amqp, { Channel, ChannelModel } from "amqplib";
 import { readFile } from "fs/promises";
+import "dotenv/config";
 
-const host: string = 'rabbitmq';
-const port: number = 5671;
+const host: string = process.env.HOST_RABBITMQ || 'localhost';
+const port: number = Number(process.env.PORT_RABBITMQ || 5671);
+const user: string = process.env.USER_RABBITMQ || 'guest';
+const password: string = process.env.PASSWORD_RABBITMQ || 'guest';
 
-export const getChannel = async (): Promise<{ connection: ChannelModel, channel: Channel }> => {
+export const getChannel = async (): Promise<{
+
+    connection: ChannelModel,
+    channel: Channel
+
+}> => {
 
     try {
 
@@ -13,8 +21,8 @@ export const getChannel = async (): Promise<{ connection: ChannelModel, channel:
             protocol: 'amqps',
             hostname: host,
             port: port,
-            username: 'guest',
-            password: 'guest',
+            username: user,
+            password: password,
             vhost: '/'
 
         }, {
@@ -39,8 +47,8 @@ export const getChannel = async (): Promise<{ connection: ChannelModel, channel:
 
         console.error({
 
-            message: 'Error while connecting to RabbitMQ: ',
-            error
+            error: 'Error while connecting to RabbitMQ: ',
+            message: error
 
         });
 
