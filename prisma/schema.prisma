@@ -73,6 +73,7 @@ model ChannelMember {
     @@index([userId])
 }
 
+//TODO: Create a separated table for the Attachment
 model Message {
     id         Int        @id @default(autoincrement())
     senderId   String     @map("sender_id") @db.Uuid
