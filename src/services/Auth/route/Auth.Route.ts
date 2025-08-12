@@ -63,13 +63,58 @@ class AuthRoutes {
         }, this.authController.updateProfPic);
 
         //TODO:
-        //fastify.put('/update-profileName', { preHandler: protectRouter }, this.authController.updateProfName);
+        fastify.put('/update-profile-name/:newName', {
+
+            preHandler: protectRouter,
+            config: {
+
+                rateLimit: {
+
+                    max: 3,
+                    timeWindow: '10 minute'
+
+                }
+
+            }
+
+        }, this.authController.updateProfName);
 
         //TODO:
-        //fastify.put('/update-profileEmail', { preHandler: protectRouter }, this.authController.updateProfEmail);
+        fastify.put('/update-profileEmail', {
+
+            preHandler: protectRouter,
+            config: {
+
+                rateLimit: {
+
+                    max: 3,
+                    timeWindow: '10 minute'
+
+                }
+
+            }
+
+        }, this.authController.updateProfEmail);
 
         //TODO:
-        //fastify.put('/update-profilePassword', { preHandler: protectRouter }, this.authController.updateProfPassword);
+        fastify.put('/update-profilePassword', {
+
+            preHandler: protectRouter,
+            config: {
+
+                rateLimit: {
+
+                    max: 3,
+                    timeWindow: '10 minute'
+
+                }
+
+            }
+
+        }, this.authController.updateProfPassword);
+
+        //TODO:
+        //fastify.delete('/delete', this.authController.delete);
 
     };
 
