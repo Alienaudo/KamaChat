@@ -3,7 +3,10 @@ FROM node:24-alpine
 WORKDIR /home/app
 
 COPY package*.json ./
+
 COPY pnpm-lock.yaml ./
+
+COPY .env ./
 
 RUN corepack enable pnpm
 
@@ -17,4 +20,5 @@ RUN pnpm prisma generate
 
 RUN pnpm tsc
 
-CMD [ "pnpm", "start" ]
+CMD [ "pnpm", "start:dev" ]
+
