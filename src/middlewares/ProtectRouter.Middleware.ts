@@ -6,6 +6,8 @@ import { FastifyRequest } from "fastify/types/request.js";
 import { FastifyReply } from "fastify/types/reply.js";
 import { DoneFuncWithErrOrRes } from "fastify";
 import { ProtectRouter } from "../interfaces/ProtectRouter.Interface.js";
+import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
+import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 
 declare module 'fastify' {
 
@@ -23,7 +25,7 @@ if (!jwtSecret) {
 
     throw new Error('Ambiente variable "JWT_SECRET" is not set');
 
-}
+};
 
 export const protectRouter: ProtectRouter = async (request: FastifyRequest, reply: FastifyReply, next: DoneFuncWithErrOrRes): Promise<void> => {
 
@@ -33,25 +35,25 @@ export const protectRouter: ProtectRouter = async (request: FastifyRequest, repl
 
         if (!token) {
 
-            return reply.status(401).send({
+            return reply.status(StatusCodes.UNAUTHORIZED).send({
 
                 message: "Unauthorized - No Token Provided"
 
             });
 
-        }
+        };
 
         const decodedToken: JwtPayload = jwt.verify(token, jwtSecret) as JwtPayload;
 
         if (!decodedToken) {
 
-            return reply.status(404).send({
+            return reply.status(StatusCodes.UNAUTHORIZED).send({
 
                 message: "Unauthorized - Invaled Token Provided"
 
             });
 
-        }
+        };
 
         const user: UserProtectRouter = await prisma
             .user
@@ -65,7 +67,7 @@ export const protectRouter: ProtectRouter = async (request: FastifyRequest, repl
 
                 omit: {
 
-                    hasedPassword: true
+                    hashedPassword: true
 
                 }
 
@@ -81,31 +83,38 @@ export const protectRouter: ProtectRouter = async (request: FastifyRequest, repl
 
             console.error("User not found");
 
-            return reply.status(404).send({
+            return reply.status(StatusCodes.NOT_FOUND).send({
 
                 errors: {
 
-                    message: "User not found"
+                    error: "User not found",
+                    message: ReasonPhrases.NOT_FOUND
 
                 }
 
             });
 
 
-        }
+        };
 
-        console.error('Error in ProtectRouter: ', error);
+        console.error({
 
-        return reply.status(500).send({
+            message: "Error in ProtectRouter: ",
+            error: error
+
+        });
+
+        return reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
 
             errors: {
 
-                message: 'Error in ProtectRouter',
+                default: "Error in ProtectRouter",
+                message: ReasonPhrases.INTERNAL_SERVER_ERROR
 
             },
 
         });
 
-    }
+    };
 
 };
