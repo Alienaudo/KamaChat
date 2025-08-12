@@ -4,7 +4,6 @@ import sharp from "sharp";
 import cloudinary from "../../../lib/cloudinary.js";
 import { prisma } from "../../../lib/prisma.js";
 import { getChannel } from "../../../lib/rabbitmq.js";
-import { unlink } from "fs/promises";
 
 const processImage = async (): Promise<void> => {
 
@@ -22,8 +21,6 @@ const processImage = async (): Promise<void> => {
 
         if (!msg?.content) return;
 
-        let tempFilePath: string | null = null;
-
         try {
 
             console.log('📥 Message received. Processing...');
@@ -39,7 +36,7 @@ const processImage = async (): Promise<void> => {
 
             const img: Buffer = Buffer.from(data.image, "base64");
 
-            const processedImage: Buffer = await sharp(img)
+            const finalImage: Buffer = await sharp(img)
                 .toFormat('avif')
                 .toBuffer();
 
@@ -59,7 +56,7 @@ const processImage = async (): Promise<void> => {
 
                     });
 
-                updateStream.end(processedImage);
+                updateStream.end(finalImage);
 
             });
 
@@ -95,25 +92,6 @@ const processImage = async (): Promise<void> => {
 
         } catch (error: unknown) {
 
-            if (tempFilePath) {
-
-                try {
-
-                    await unlink(tempFilePath);
-
-                } catch (cleanupError) {
-
-                    console.error({
-
-                        message: 'Error cleaning temporary file after failure: ',
-                        error: cleanupError
-
-                    });
-
-                };
-
-            };
-
             channel.nack(msg, false, true);
             console.error({
 
@@ -133,4 +111,4 @@ const processImage = async (): Promise<void> => {
 
 };
 
-processImage();
+await processImage();
