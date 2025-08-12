@@ -10,9 +10,10 @@
     "build:dev": "pnpm prisma generate && pnpm tsc --watch",
     "build": "pnpm prisma generate && pnpm tsc",
     "start:api": "node dist/src/api/app.js",
-    "start:worker": "node dist/src/services/Channel/worker/test.Worker.js",
-    "start": "concurrently \"pnpm start:api\" \"pnpm start:worker\"",
-    "start:dev": "concurrently \"nodemon dist/src/api/app.js\" \"pnpm start:worker\""
+    "start:worker:1": "node dist/src/services/Channel/worker/ImageChannel.Worker.js",
+    "start:worker:2": "node dist/src/services/Auth/worker/ImageProf.Worker.js",
+    "start": "concurrently \"pnpm start:api\" \"pnpm start:worker:1\" \"pnpm start:worker:2\"",
+    "start:dev": "concurrently \"nodemon dist/src/api/app.js\" \"pnpm start:worker:1\" \"pnpm start:worker:2\""
   },
   "keywords": [],
   "author": "",

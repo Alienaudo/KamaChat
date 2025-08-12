@@ -32,14 +32,14 @@ enum DocType {
 }
 
 model User {
-    id            String   @id @default(uuid(7)) @db.Uuid
-    email         String   @unique @db.VarChar(100)
-    nick          String   @unique @db.VarChar(25)
-    name          String   @db.VarChar(35)
-    hasedPassword String   @map("hased_password") @db.VarChar(255)
-    profilePic    String?  @default("default-avatar.avif") @map("profile_pic") @db.Text
-    createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
-    updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+    id             String   @id @default(uuid(7)) @db.Uuid
+    email          String   @unique @db.VarChar(100)
+    nick           String   @unique @db.VarChar(25)
+    name           String   @db.VarChar(35)
+    hashedPassword String   @map("hased_password") @db.VarChar(255)
+    profilePic     String?  @default("default-avatar.avif") @map("profile_pic") @db.Text
+    createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+    updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
     sentMessages     Message[]       @relation(name: "SentMessages")
     receivedMessages Message[]       @relation(name: "ReceivedMessages")
@@ -52,7 +52,7 @@ model User {
 model Channel {
     id          BigInt  @id @db.BigInt // Snowflake ID w/ BigInt
     name        String  @db.VarChar(100)
-    description String?  @db.Text
+    description String? @db.Text
     channelPic  String? @default("default-avatar.avif") @map("channel_pic") @db.Text
 
     members  ChannelMember[] @relation(name: "ChannelMemberships")
@@ -73,6 +73,7 @@ model ChannelMember {
     @@index([userId])
 }
 
+//TODO: Create a separated table for the Attachment
 model Message {
     id         Int        @id @default(autoincrement())
     senderId   String     @map("sender_id") @db.Uuid

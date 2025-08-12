@@ -20,10 +20,33 @@ interface logout {
 
 };
 
-interface update {
+interface updatePic {
 
     (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
 
 };
 
-export { signup, login, logout, update };
+interface updateName {
+
+    (request: FastifyRequest<{
+
+        Body: SignupRequestBody,
+        Params: {
+
+            newName: string
+
+        }
+
+    }>, reply: FastifyReply): Promise<void>
+
+};
+
+export {
+
+    signup,
+    login,
+    logout,
+    updatePic,
+    updateName
+
+};

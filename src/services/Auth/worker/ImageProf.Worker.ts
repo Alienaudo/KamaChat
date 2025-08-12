@@ -1,92 +1,108 @@
-import { Job, Worker } from "bullmq";
-import { convertImageToWebP } from "../../../lib/convertWebp.js";
+import { ConsumeMessage } from "amqplib";
+import { getChannel } from "../../../lib/rabbitmq.js";
+import sharp from "sharp";
+import { UploadApiErrorResponse, UploadApiResponse } from "cloudinary/types";
 import cloudinary from "../../../lib/cloudinary.js";
 import { prisma } from "../../../lib/prisma.js";
-import fs from 'fs';
-import { UploadApiResponse } from "cloudinary";
-import { redisConnection } from "../../../lib/redis.js";
-import { ProfImageJobData } from "../../../interfaces/Prof.ImageJobData.Interface.js";
 
-const worker: Worker = new Worker<ProfImageJobData>('image-processing', async (job: Job<ProfImageJobData>): Promise<void> => {
+const processImage = async (): Promise<void> => {
 
-    const { originalPath, userId } = job.data;
-    let convertedImagePath: string | undefined;
+    const { channel } = await getChannel();
 
-    console.log(`Processing image for user: ${userId}. File: ${originalPath}`);
+    const queue: string = 'process-profile-pic';
 
-    try {
+    await channel.assertQueue(queue, { durable: true });
 
-        convertedImagePath = await convertImageToWebP(originalPath, 75);
+    channel.prefetch(1);
 
-        const updateResponse: UploadApiResponse = await cloudinary
-            .uploader
-            .upload(convertedImagePath, {
+    console.log('✅ Worker started, waiting for jobs in the queue: ', queue);
 
-                folder: 'profile_pic',
-                resource_type: 'image'
+    channel.consume(queue, async (msg: ConsumeMessage | null): Promise<void> => {
+
+        if (!msg?.content) return;
+
+        const data: {
+
+            profId: string,
+            image: string
+
+        } = JSON.parse(msg.content.toString());
+
+        try {
+
+            const profId: string = data.profId;
+            const img: Buffer = Buffer.from(data.image, "base64");
+
+            const finalImage: Buffer = await sharp(img)
+                .toFormat("avif")
+                .toBuffer();
+
+            const updateResponse: UploadApiResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
+
+                const updateStream = cloudinary
+                    .uploader
+                    .upload_stream({
+
+                        folder: 'prof_pic',
+                        resource_type: 'image'
+
+                    }, (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined): void => {
+
+                        if (error) return reject(error);
+                        if (result) return resolve(result);
+
+                    });
+
+                updateStream.end(finalImage);
 
             });
 
-        await prisma.user.update({
+            const updatedProf: {
 
-            where: {
+                profilePic: string | null
 
-                id: userId,
-            },
-            data: {
+            } = await prisma.user
+                .update({
 
-                profilePic: updateResponse.secure_url,
+                    where: {
 
-            },
-            omit: {
+                        id: profId
 
-                hasedPassword: true
+                    },
+                    data: {
 
-            }
+                        profilePic: updateResponse.secure_url
 
-        });
+                    },
+                    select: {
 
-        console.log(`User image ${userId} successfully processed and updated!`);
+                        profilePic: true
 
-    } catch (error: unknown) {
+                    }
 
-        console.error(`Failed to process job ${job.id} for user ${userId}: `, error);
-        throw error;
+                });
 
-    } finally {
+            if (!updatedProf.profilePic) throw new Error('Channel picture not updated');
 
-        if (fs.existsSync(originalPath)) {
+            console.log('✅ Work successfully completed for the profile: ', data.profId);
 
-            fs.unlinkSync(originalPath);
-            console.log(`Original temporary file removed: ${originalPath}`);
+            return channel.ack(msg);
 
-        }
+        } catch (error: unknown) {
 
-        if (convertedImagePath && fs.existsSync(convertedImagePath)) {
+            console.error({
 
-            fs.unlinkSync(convertedImagePath);
-            console.log(`Converted temporary file removed: ${convertedImagePath}`);
+                message: 'Error processing image: ',
+                erro: error
 
-        }
+            });
 
-    }
+            return channel.nack(msg, false, true);
 
-}, {
+        };
 
-    connection: redisConnection
+    });
 
-});
+};
 
-worker.on('failed', (job: Job<any, any, string> | undefined, err: Error): void => {
-
-    console.log(`Task ${job?.id} failed with error: ${err.message}`);
-
-});
-
-worker.on('completed', (job: Job<any, any, string>): void => {
-
-    console.log(`Task ${job.id} completed successfully!`);
-
-});
-
-console.log("Image process started...");
+await processImage();
