@@ -4,12 +4,9 @@ import { FastifyRequest } from "fastify/types/request";
 
 export interface ProtectRouter {
 
-    (
-        request: FastifyRequest<{ Body: any, Params: any }>,
+    (request: FastifyRequest<{ Body: any, Params: any }>,
         reply: FastifyReply,
-        next: DoneFuncWithErrOrRes
-
-    ): Promise<void>
+        next: DoneFuncWithErrOrRes): Promise<FastifyReply | void>
 
 };
 
