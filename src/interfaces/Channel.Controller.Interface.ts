@@ -5,7 +5,7 @@ import { ChannelParam } from "./Channel.Param"
 
 export interface createChannel {
 
-    (request: FastifyRequest<{ Params: ChannelParam }>, reply: FastifyReply): Promise<void>
+    (request: FastifyRequest<{ Params: ChannelParam }>, reply: FastifyReply): Promise<FastifyReply | void>
 
 };
 
@@ -16,13 +16,13 @@ export interface addMembersToChannel {
         Body: UserProtectRouter,
         Params: ChannelParam
 
-    }>, reply: FastifyReply): Promise<void>
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
 
 };
 
 export interface getChannelsForSidebar {
 
-    (request: FastifyRequest, reply: FastifyReply): Promise<void>
+    (request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply | void>
 
 };
 
@@ -36,6 +36,98 @@ export interface updateChannelPic {
 
         }
 
-    }>, reply: FastifyReply): Promise<void>
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
+
+};
+
+export interface updateChannelName {
+
+    (request: FastifyRequest<{
+
+        Body: {
+
+            id: bigint
+            name: string
+            newName: string
+
+        }
+
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
+
+};
+
+export interface updateChannelDescription {
+
+    (request: FastifyRequest<{
+
+        Body: {
+
+            id: bigint
+            name: string
+            newDesciption: string
+
+        }
+
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
+
+};
+
+export interface makeMemberAdmin {
+
+    (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
+
+};
+
+export interface makeAdminMember {
+
+    (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
+
+};
+
+export interface removeMember {
+
+    (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
+
+};
+
+export interface deleteChannel {
+
+    (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<FastifyReply | void>
 
 };

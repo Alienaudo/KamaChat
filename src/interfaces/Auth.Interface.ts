@@ -10,7 +10,7 @@ interface signup {
 
 interface login {
 
-    (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void>
+    (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<FastifyReply | void>
 
 };
 

@@ -22,7 +22,16 @@ export class GetChannelsService {
 
             const userId: string | undefined = request.user?.id;
 
-            if (!userId) throw new Error("User ID not found");
+            if (!userId) {
+
+                return reply.status(StatusCodes.FORBIDDEN).send({
+
+                    error: "Authentication required",
+                    message: ReasonPhrases.FORBIDDEN
+
+                });
+
+            };
 
             const channels: Channel[] = await this.prisma.channel
                 .findMany({
@@ -50,9 +59,12 @@ export class GetChannelsService {
 
                 });
 
-            if (!channels || channels.length < 1 || channels === undefined) throw new Error("No channels where found");
+            return reply.status(StatusCodes.OK).send({
 
-            return reply.status(StatusCodes.OK).send(channels);
+                message: `Channels for user ${userId}`,
+                channels
+
+            });
 
         } catch (error: unknown) {
 

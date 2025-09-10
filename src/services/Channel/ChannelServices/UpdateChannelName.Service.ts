@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { FastifyReply } from "fastify/types/reply";
 import { FastifyRequest } from "fastify/types/request";
@@ -7,7 +7,7 @@ import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 
 export class UpdateChannelNameService {
 
-    private prisma: PrismaClient;
+    private readonly prisma: PrismaClient;
 
     constructor(prisma: PrismaClient) {
 
@@ -24,15 +24,15 @@ export class UpdateChannelNameService {
 
         }
 
-    }>, reply: FastifyReply): Promise<void> => {
+    }>, reply: FastifyReply): Promise<FastifyReply> => {
 
         try {
 
-            const userId: string | undefined = request.user?.id;
+            const memberId: string | undefined = request.user?.id;
             const channelId: bigint = request.body.id;
             const newName: string = request.body.newName;
 
-            if (!userId) {
+            if (!memberId) {
 
                 return reply.status(StatusCodes.UNAUTHORIZED).send({
 
@@ -43,22 +43,44 @@ export class UpdateChannelNameService {
 
             };
 
-            const updatedChannel = await this.prisma.channel
+            const membership: { role: Role } | null = await this.prisma.channelMember
+                .findUnique({
+
+                    where: {
+
+                        channelId_userId: {
+
+                            channelId: channelId,
+                            userId: memberId
+
+                        }
+
+                    },
+                    select: {
+
+                        role: true
+
+                    }
+
+                });
+
+            if (!membership || membership.role !== 'admin') {
+
+                return reply.status(StatusCodes.FORBIDDEN).send({
+
+                    error: "Only an admin can change the channel's name",
+                    message: ReasonPhrases.FORBIDDEN
+
+                });
+
+            };
+
+            const updatedName: { name: string } = await this.prisma.channel
                 .update({
 
                     where: {
 
                         id: channelId,
-                        members: {
-
-                            some: {
-
-                                userId: userId,
-                                role: "admin"
-
-                            }
-
-                        }
 
                     },
                     data: {
@@ -80,7 +102,7 @@ export class UpdateChannelNameService {
                 channel: {
 
                     id: channelId.toString(),
-                    name: updatedChannel.name
+                    name: updatedName.name
 
                 }
 
@@ -88,29 +110,14 @@ export class UpdateChannelNameService {
 
         } catch (error: unknown) {
 
-            if (error instanceof PrismaClientKnownRequestError) {
+            if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
 
-                switch (error.code) {
+                return reply.status(StatusCodes.FORBIDDEN).send({
 
-                    case 'P2025':
+                    error: "Channel not found",
+                    message: ReasonPhrases.FORBIDDEN
 
-                        return reply.status(StatusCodes.FORBIDDEN).send({
-
-                            error: "Channel not found or user lacks permission",
-                            message: ReasonPhrases.FORBIDDEN
-
-                        });
-
-                    case 'P2002':
-
-                        return reply.status(StatusCodes.BAD_REQUEST).send({
-
-                            error: "Name is already in use",
-                            message: ReasonPhrases.BAD_REQUEST
-
-                        });
-
-                };
+                });
 
             };
 

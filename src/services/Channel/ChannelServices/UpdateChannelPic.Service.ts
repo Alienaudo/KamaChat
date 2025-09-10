@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import { FastifyReply } from "fastify/types/reply";
 import { FastifyRequest } from "fastify/types/request";
 import { saveTemporaryFile } from "../../../utils/fileSaver.js";
@@ -32,11 +32,20 @@ export class UpdateChannelPicService {
 
             const tempFile: string = await saveTemporaryFile(request);
             const channelId: bigint = request.params.id;
-            const userId: string | undefined = request.user?.id;
+            const memberId: string | undefined = request.user?.id;
 
-            if (!userId) throw new Error("User ID not found");
+            if (!memberId) {
 
-            const inviterMembership = await this.prisma.channelMember
+                return reply.status(StatusCodes.FORBIDDEN).send({
+
+                    error: "Authentication required",
+                    message: ReasonPhrases.FORBIDDEN
+
+                });
+
+            };
+
+            const inviterMembership: { role: Role } = await this.prisma.channelMember
                 .findUniqueOrThrow({
 
                     where: {
@@ -44,9 +53,14 @@ export class UpdateChannelPicService {
                         channelId_userId: {
 
                             channelId: channelId,
-                            userId: userId
+                            userId: memberId
 
                         }
+
+                    },
+                    select: {
+
+                        role: true
 
                     }
 
@@ -56,7 +70,7 @@ export class UpdateChannelPicService {
 
                 return reply.status(StatusCodes.FORBIDDEN).send({
 
-                    error: "User is not an admin of this channel",
+                    error: "Only an admin can update channel's picture",
                     message: ReasonPhrases.FORBIDDEN
 
                 });
