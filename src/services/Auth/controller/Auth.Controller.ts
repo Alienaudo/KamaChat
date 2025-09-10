@@ -11,7 +11,7 @@ import { UpdateProfName } from "../AuthServices/UpdateProfName.Service.js";
 
 export class AuthController {
 
-    private prisma: PrismaClient;
+    private readonly prisma: PrismaClient;
 
     constructor(prisma: PrismaClient) {
 

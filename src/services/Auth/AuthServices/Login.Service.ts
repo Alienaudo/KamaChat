@@ -1,7 +1,6 @@
 import { FastifyRequest } from "fastify/types/request";
 import { login } from "../../../interfaces/Auth.Interface.js";
 import { FastifyReply } from "fastify/types/reply";
-import { SignupRequestBody } from "../../../interfaces/SignupRequestBody.Interface.js";
 import { PrismaClient } from "@prisma/client/default";
 import * as argon2 from "argon2";
 import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
@@ -11,7 +10,7 @@ import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
 
 export class LoginService {
 
-    private prisma: PrismaClient;
+    private readonly prisma: PrismaClient;
 
     constructor(prisma: PrismaClient) {
 
@@ -19,7 +18,16 @@ export class LoginService {
 
     };
 
-    public login: login = async (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void> => {
+    public login: login = async (request: FastifyRequest<{
+
+        Body: {
+
+            email: string
+            password: string
+
+        }
+
+    }>, reply: FastifyReply): Promise<FastifyReply> => {
 
         const { email, password } = request.body;
 
@@ -92,13 +100,6 @@ export class LoginService {
         } catch (error: unknown) {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-
-                console.error({
-
-                    message: "Error during login",
-                    error: error.message
-
-                });
 
                 return reply.status(StatusCodes.NOT_FOUND).send({
 

@@ -1,4 +1,4 @@
-import { Channel, PrismaClient, User } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { FastifyReply } from "fastify/types/reply";
 import { FastifyRequest } from "fastify/types/request";
 import { UserProtectRouter } from "../../../interfaces/UserProtectRoute.Interface";
@@ -9,7 +9,7 @@ import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 
 export class AddMembersService {
 
-    private prisma: PrismaClient;
+    private readonly prisma: PrismaClient;
 
     constructor(prisma: PrismaClient) {
 
@@ -26,7 +26,7 @@ export class AddMembersService {
 
         }
 
-    }>, reply: FastifyReply): Promise<void> => {
+    }>, reply: FastifyReply): Promise<FastifyReply> => {
 
         try {
 
@@ -34,74 +34,97 @@ export class AddMembersService {
             const inviterId: string | undefined = request.user?.id;
             const memberId: string = request.body.id;
 
-            if (!inviterId) throw new Error('Inviter ID not found');
-
-            const channelExists: Channel | null = await this.prisma.channel
-                .findUnique({
-
-                    where: {
-
-                        id: channelId
-
-                    },
-
-                });
-
-            if (!channelExists) {
-
-                return reply.status(StatusCodes.NOT_FOUND).send({
-
-                    error: "Channel not found",
-                    message: ReasonPhrases.NOT_FOUND
-
-                });
-
-            };
-
-            const inviterMembership = await this.prisma.channelMember
-                .findUnique({
-
-                    where: {
-
-                        channelId_userId: {
-
-                            channelId: channelId,
-                            userId: inviterId
-
-                        }
-
-                    }
-
-                });
-
-            if (!inviterMembership || inviterMembership.role !== 'admin') {
+            if (!inviterId) {
 
                 return reply.status(StatusCodes.FORBIDDEN).send({
 
-                    error: "User is not an admin of this channel",
+                    error: "Authentication required",
                     message: ReasonPhrases.FORBIDDEN
 
                 });
 
             };
 
-            const memberExists: User | null = await this.prisma.user
-                .findUnique({
+            const [inviterMembership, memberExists] = await Promise.all([
 
-                    where: {
+                this.prisma.channelMember
+                    .findUnique({
 
-                        id: memberId
+                        where: {
 
-                    },
+                            channelId_userId: {
+
+                                channelId: channelId,
+                                userId: inviterId
+
+                            }
+
+                        },
+                        select: {
+
+                            user: {
+
+                                select: {
+
+                                    nick: true
+
+                                }
+
+                            },
+                            role: true
+
+                        }
+
+
+                    }),
+                this.prisma.channelMember
+                    .findUnique({
+
+                        where: {
+
+                            channelId_userId: {
+
+                                channelId: channelId,
+                                userId: memberId,
+
+                            }
+
+                        },
+                        select: {
+
+                            user: {
+
+                                select: {
+
+                                    nick: true
+
+                                }
+
+                            }
+
+                        }
+
+                    })
+
+            ]);
+
+            if (!inviterMembership || inviterMembership.role !== 'admin') {
+
+                return reply.status(StatusCodes.FORBIDDEN).send({
+
+                    error: "Only an admin can add new members",
+                    message: ReasonPhrases.FORBIDDEN
 
                 });
 
-            if (!memberExists) {
+            };
 
-                return reply.status(StatusCodes.NOT_FOUND).send({
+            if (memberExists) {
 
-                    error: "User not found",
-                    message: ReasonPhrases.NOT_FOUND
+                return reply.status(StatusCodes.CONFLICT).send({
+
+                    error: `User ${memberExists.user.nick} is already a members`,
+                    message: ReasonPhrases.CONFLICT
 
                 });
 
@@ -122,7 +145,7 @@ export class AddMembersService {
                             create: {
 
                                 userId: memberId,
-                                role: 'member'
+                                role: "admin"
 
                             }
 

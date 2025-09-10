@@ -8,11 +8,16 @@ import { GetChannelsService } from "../ChannelServices/GetChannels.Service.js";
 import { UpdateChannelPicService } from "../ChannelServices/UpdateChannelPic.Service.js";
 import { ChannelParam } from "../../../interfaces/Channel.Param.js";
 import { UpdateChannelNameService } from "../ChannelServices/UpdateChannelName.Service.js";
-import { addMembersToChannel, createChannel, getChannelsForSidebar, updateChannelPic } from "../../../interfaces/Channel.Controller.Interface.js";
+import { addMembersToChannel, createChannel, deleteChannel, getChannelsForSidebar, makeAdminMember, makeMemberAdmin, removeMember, updateChannelDescription, updateChannelName, updateChannelPic } from "../../../interfaces/Channel.Controller.Interface.js";
+import { UpdateChannelDescriptionService } from "../ChannelServices/UpdateChannelDescription.Service.js";
+import { MakeMemberAdminService } from "../ChannelServices/MakeMemberAdmin.Service.js";
+import { MakeAdminMemberService } from "../ChannelServices/MakeAdminMember.Service.js";
+import { RemoveMemberService } from "../ChannelServices/RemoveMember.Service.js";
+import { DeleteChannelService } from "../ChannelServices/DeleteChannel.Service.js";
 
 export class ChannelController {
 
-    private prisma: PrismaClient;
+    private readonly prisma: PrismaClient;
 
     constructor(prisma: PrismaClient) {
 
@@ -20,7 +25,11 @@ export class ChannelController {
 
     }
 
-    public createChannel: createChannel = async (request: FastifyRequest<{ Params: ChannelParam }>, reply: FastifyReply): Promise<void> => {
+    public createChannel: createChannel = async (request: FastifyRequest<{
+
+        Params: ChannelParam
+
+    }>, reply: FastifyReply): Promise<void> => {
 
         const service: CreateChannelService = new CreateChannelService(this.prisma);
 
@@ -65,7 +74,7 @@ export class ChannelController {
 
     };
 
-    public updateChannelName = async (request: FastifyRequest<{
+    public updateChannelName: updateChannelName = async (request: FastifyRequest<{
 
         Body: {
 
@@ -83,15 +92,92 @@ export class ChannelController {
 
     };
 
-    public updateChannelDescription = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => { };
+    public updateChannelDescription: updateChannelDescription = async (request: FastifyRequest<{
 
-    public makeMemberAdmin = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => { };
+        Body: {
 
-    public makeAdminMember = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => { };
+            id: bigint
+            name: string
+            newDesciption: string
 
-    public removeMember = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => { };
+        }
 
-    public deleteChannel = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => { };
+    }>, reply: FastifyReply): Promise<void> => {
+
+        const service: UpdateChannelDescriptionService = new UpdateChannelDescriptionService(this.prisma);
+
+        await service.update(request, reply);
+
+    };
+
+    public makeMemberAdmin: makeMemberAdmin = async (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<void> => {
+
+        const service: MakeMemberAdminService = new MakeMemberAdminService(this.prisma);
+
+        await service.make(request, reply);
+
+    };
+
+    public makeAdminMember: makeAdminMember = async (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<void> => {
+
+        const service: MakeAdminMemberService = new MakeAdminMemberService(this.prisma);
+
+        await service.make(request, reply);
+
+    };
+
+
+    public removeMember: removeMember = async (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<void> => {
+
+        const service: RemoveMemberService = new RemoveMemberService(this.prisma);
+
+        await service.remove(request, reply);
+
+    };
+
+    public deleteChannel: deleteChannel = async (request: FastifyRequest<{
+
+        Body: UserProtectRouter,
+        Params: {
+
+            id: bigint
+
+        }
+
+    }>, reply: FastifyReply): Promise<void> => {
+
+        const service: DeleteChannelService = new DeleteChannelService(this.prisma);
+
+        await service.delete(request, reply);
+
+    };
 
 };
 
