@@ -7,6 +7,7 @@ describe('Tests for AuthController method: Signup', (): void => {
     const user = {
 
         "name": "test",
+        "nick": "TEST_USER",
         "email": "testtests@gmail.com",
         "password": "fwfwfwffefwdadwda"
 
