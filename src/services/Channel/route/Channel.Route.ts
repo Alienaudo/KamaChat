@@ -2,8 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { ChannelController } from "../controller/Channel.Controller.js";
 import { FastifyInstance } from "fastify/types/instance";
 import { FastifyPluginAsync } from "fastify/types/plugin";
-import { protectRouter } from "../../../middlewares/ProtectRouter.Middleware.js";
 import { RawServerDefault } from "fastify";
+import { ProtectMiddleware } from "../../../middlewares/ProtectRouter.Middleware.js";
 
 declare module 'fastify' {
 
@@ -17,21 +17,27 @@ declare module 'fastify' {
 
 class ChannelRoute {
 
-    private channelController: ChannelController;
+    private readonly channelController: ChannelController;
+    private readonly protectMiddleware: ProtectMiddleware;
 
-    constructor(prisma: PrismaClient) {
+    constructor(prisma: PrismaClient, protectMiddleware: ProtectMiddleware) {
 
         this.channelController = new ChannelController(prisma);
+        this.protectMiddleware = protectMiddleware;
 
     };
 
     public channelRoutes = async (fastify: FastifyInstance<RawServerDefault>): Promise<void> => {
 
-        fastify.post('/channels', { preHandler: protectRouter }, this.channelController.getChannelsForSidebar);
+        fastify.post('/channels', {
+
+            preHandler: this.protectMiddleware.protect
+
+        }, this.channelController.getChannelsForSidebar);
 
         fastify.post('/create/:name', {
 
-            preHandler: protectRouter,
+            preHandler: this.protectMiddleware.protect,
             config: {
 
                 rateLimit: {
@@ -47,7 +53,7 @@ class ChannelRoute {
 
         fastify.put('/update/picture/:id', {
 
-            preHandler: protectRouter,
+            preHandler: this.protectMiddleware.protect,
             config: {
 
                 rateLimit: {
@@ -59,12 +65,11 @@ class ChannelRoute {
 
             }
 
-
         }, this.channelController.updateChannelPic);
 
         fastify.put('/update/name', {
 
-            preHandler: protectRouter,
+            preHandler: this.protectMiddleware.protect,
             config: {
 
                 rateLimit: {
@@ -76,11 +81,14 @@ class ChannelRoute {
 
             }
 
-
         }, this.channelController.updateChannelName);
 
 
-        fastify.post('/addMember/:id', { preHandler: protectRouter }, this.channelController.addMembersToChannel);
+        fastify.post('/addMember/:id', {
+
+            preHandler: this.protectMiddleware.protect
+
+        }, this.channelController.addMembersToChannel);
 
     };
 
@@ -89,7 +97,11 @@ class ChannelRoute {
 export const ChannelRoutePlugin: FastifyPluginAsync = async (fastify: FastifyInstance<RawServerDefault>): Promise<void> => {
 
     const prismaInstance: PrismaClient = fastify.prisma;
-    const channelRoutesInstance: ChannelRoute = new ChannelRoute(prismaInstance);
+
+    const protectMiddlewareInstance: ProtectMiddleware = new ProtectMiddleware(prismaInstance);
+
+    const channelRoutesInstance: ChannelRoute = new ChannelRoute(prismaInstance, protectMiddlewareInstance);
+
     await channelRoutesInstance.channelRoutes(fastify);
 
 };
