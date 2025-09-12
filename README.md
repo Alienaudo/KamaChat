@@ -2,7 +2,7 @@
 
 ## Overview
 
-KamaChat is a modern, scalable, and feature-rich chat application designed to provide seamless communication through text, voice, and video, similar to platforms like Discord. It supports direct messages, group channels, and multimedia attachments, prioritizing performance, security, and user experience. The backend is built with Node.js, TypeScript, Fastify, Prisma, and PostgreSQL, while the frontend leverages React, Tailwind CSS, and Vite. A desktop implementation in Rust is also planned for cross-platform support.
+KamaChat (name is inspired from japanese mythological creature Kamaitatch) is a modern, scalable, and feature-rich chat application designed to provide seamless communication through text, voice, and video, similar to platforms like Discord. It supports direct messages, group channels, and multimedia attachments, prioritizing performance, security, and user experience. The backend is built with Node.js, TypeScript, Fastify, Prisma, and PostgreSQL, while the frontend leverages React, Tailwind CSS, and Vite. A desktop implementation in Rust is also planned for cross-platform support.
 
 The application includes real-time messaging, secure authentication with 2FA, email notifications, message search, and efficient media processing. This README provides an overview, setup instructions, and current development tasks for contributors.
 
