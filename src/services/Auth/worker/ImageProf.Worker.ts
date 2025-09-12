@@ -4,18 +4,19 @@ import sharp from "sharp";
 import { UploadApiErrorResponse, UploadApiResponse } from "cloudinary/types";
 import cloudinary from "../../../lib/cloudinary.js";
 import { prisma } from "../../../lib/prisma.js";
+import { logger } from "../../../logger/pino.js";
 
 const processImage = async (): Promise<void> => {
 
     const { channel } = await getChannel();
 
-    const queue: string = 'process-profile-pic';
+    const queue: string = "process-profile-pic";
 
     await channel.assertQueue(queue, { durable: true });
 
     channel.prefetch(1);
 
-    console.log('✅ Worker started, waiting for jobs in the queue: ', queue);
+    logger.info(`✅ Worker started, waiting for jobs in the queue: ${queue}`);
 
     channel.consume(queue, async (msg: ConsumeMessage | null): Promise<void> => {
 
@@ -84,13 +85,13 @@ const processImage = async (): Promise<void> => {
 
             if (!updatedProf.profilePic) throw new Error('Channel picture not updated');
 
-            console.log('✅ Work successfully completed for the profile: ', data.profId);
+            logger.info(`✅ Work successfully completed for the profile: ${data.profId}`);
 
             return channel.ack(msg);
 
         } catch (error: unknown) {
 
-            console.error({
+            logger.error({
 
                 message: 'Error processing image: ',
                 erro: error

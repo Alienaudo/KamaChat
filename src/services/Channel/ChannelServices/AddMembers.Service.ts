@@ -6,6 +6,7 @@ import { addMembersToChannel } from "../../../interfaces/Channel.Controller.Inte
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
 import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
+import { logger } from "../../../logger/pino.js";
 
 export class AddMembersService {
 
@@ -77,6 +78,7 @@ export class AddMembersService {
 
 
                     }),
+
                 this.prisma.channelMember
                     .findUnique({
 
@@ -186,12 +188,13 @@ export class AddMembersService {
                 channel: {
 
                     channelName: updatedChannel.name,
-                    members: updatedChannel.members.map(member => ({
+                    members: updatedChannel.members
+                        .map(member => ({
 
-                        id: member.user.id,
-                        nick: member.user.nick
+                            id: member.user.id,
+                            nick: member.user.nick
 
-                    }))
+                        }))
 
                 }
 
@@ -205,6 +208,8 @@ export class AddMembersService {
 
                     case 'P2002':
 
+                        logger.error(error);
+
                         return reply.status(StatusCodes.CONFLICT).send({
 
                             error: "The user is already in the channel.",
@@ -213,6 +218,8 @@ export class AddMembersService {
                         });
 
                     case 'P2025':
+
+                        logger.error(error);
 
                         return reply.status(StatusCodes.NOT_FOUND).send({
 
@@ -225,7 +232,7 @@ export class AddMembersService {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Failed to add a new member to channel",
                 channelId: request.body.id,

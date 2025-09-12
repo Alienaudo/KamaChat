@@ -9,6 +9,7 @@ import { generateToken } from "../../../utils/generateToken.js";
 import * as crypto from "crypto";
 import * as argon2 from "argon2";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
+import { logger } from "../../../logger/pino.js";
 
 export class SignupService {
 
@@ -20,7 +21,12 @@ export class SignupService {
 
     };
 
-    public signup: signup = async (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void> => {
+    public signup: signup = async (
+
+        request: FastifyRequest<{ Body: SignupRequestBody }>,
+        reply: FastifyReply
+
+    ): Promise<void> => {
 
         try {
 
@@ -28,35 +34,31 @@ export class SignupService {
 
             if (!name || !nick || !email || !password) {
 
-                return reply
-                    .status(StatusCodes.BAD_REQUEST)
-                    .send({
+                return reply.status(StatusCodes.BAD_REQUEST).send({
 
-                        error: {
+                    error: {
 
-                            error: "All fields are required",
-                            message: ReasonPhrases.BAD_REQUEST
+                        error: "All fields are required",
+                        message: ReasonPhrases.BAD_REQUEST
 
-                        },
+                    },
 
-                    });
+                });
 
             };
 
             if (password.length < 6) {
 
-                return reply
-                    .status(StatusCodes.BAD_REQUEST)
-                    .send({
+                return reply.status(StatusCodes.BAD_REQUEST).send({
 
-                        error: {
+                    error: {
 
-                            error: "password must be at least 6 characters",
-                            message: ReasonPhrases.BAD_REQUEST
+                        error: "password must be at least 6 characters",
+                        message: ReasonPhrases.BAD_REQUEST
 
-                        },
+                    },
 
-                    });
+                });
 
             };
 
@@ -114,12 +116,7 @@ export class SignupService {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
 
-                console.error({
-
-                    message: "Email or Nickname already exists",
-                    error: error.message
-
-                });
+                logger.error(error);
 
                 return reply.status(StatusCodes.BAD_REQUEST).send({
 
@@ -134,7 +131,7 @@ export class SignupService {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Error during singup",
                 error

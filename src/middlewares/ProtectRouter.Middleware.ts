@@ -8,6 +8,7 @@ import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
 import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 import { PrismaClient } from "@prisma/client";
 import { ProtectRouter } from "../interfaces/ProtectRouter.Interface.js";
+import { logger } from "../logger/pino.js";
 
 declare module 'fastify' {
 
@@ -57,7 +58,6 @@ export class ProtectMiddleware {
             };
 
             const token: string = request.cookies.jwt;
-            console.log("Received token: ", token);
 
             const decodedToken: JwtPayload = jwt.verify(token, this.jwtSecret) as JwtPayload;
 
@@ -72,7 +72,7 @@ export class ProtectMiddleware {
 
             };
 
-            console.log("User id: ", decodedToken.userId);
+            logger.info("User id: ", decodedToken.userId);
 
             const user: UserProtectRouter | null = await this.prisma.user
                 .findUnique({
@@ -93,7 +93,7 @@ export class ProtectMiddleware {
 
             if (!user) {
 
-                console.log("User was not authenticated");
+                logger.error("User was not authenticated");
 
                 return reply.status(StatusCodes.FORBIDDEN).send({
 
@@ -107,8 +107,6 @@ export class ProtectMiddleware {
                 });
 
             };
-
-            console.log("User found w/ token: ", user);
 
             request.user = user;
 
@@ -131,12 +129,12 @@ export class ProtectMiddleware {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Error in ProtectRouter: ",
                 error: error
 
-            });
+            })
 
             return reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
 

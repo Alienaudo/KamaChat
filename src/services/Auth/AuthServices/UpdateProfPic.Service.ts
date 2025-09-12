@@ -8,10 +8,16 @@ import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 import { getChannel } from "../../../lib/rabbitmq.js";
 import { readFile, unlink } from "fs/promises";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
+import { logger } from "../../../logger/pino.js";
 
 export class UpdateProfPicService {
 
-    public update: updatePic = async (request: FastifyRequest<{ Body: SignupRequestBody }>, reply: FastifyReply): Promise<void> => {
+    public update: updatePic = async (
+
+        request: FastifyRequest<{ Body: SignupRequestBody }>,
+        reply: FastifyReply
+
+    ): Promise<void> => {
 
         try {
 
@@ -20,7 +26,7 @@ export class UpdateProfPicService {
 
             if (!profId) {
 
-                console.error("User ID is required");
+                logger.error("User ID is required");
 
                 return reply.status(StatusCodes.BAD_REQUEST).send({
 
@@ -64,7 +70,7 @@ export class UpdateProfPicService {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
 
-                console.error("User not found");
+                logger.error("User not found");
 
                 return reply.status(StatusCodes.NOT_FOUND).send({
 
@@ -79,7 +85,7 @@ export class UpdateProfPicService {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Error during update profile picture",
                 error: error
