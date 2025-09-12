@@ -7,6 +7,7 @@ import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
 import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
 import { filterXSS } from "xss";
+import { logger } from "../../../logger/pino.js";
 
 export class CreateChannelService {
 
@@ -79,7 +80,7 @@ export class CreateChannelService {
 
                                         id: true,
                                         nick: true,
-                                        profilePic: true
+                                        profilePic: true,
 
                                     }
 
@@ -98,6 +99,7 @@ export class CreateChannelService {
             return reply.status(StatusCodes.CREATED).send({
 
                 message: ReasonPhrases.CREATED,
+                id: newChannel.id.toString(),
                 name: newChannel.name,
                 pic: newChannel.channelPic
 
@@ -107,7 +109,7 @@ export class CreateChannelService {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
 
-                console.log(error);
+                logger.error(error);
 
                 return reply.status(StatusCodes.CONFLICT).send({
 
@@ -118,7 +120,7 @@ export class CreateChannelService {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Failed to create channel",
                 error

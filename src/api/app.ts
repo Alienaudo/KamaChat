@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify/types/instance.js";
 import { prisma } from "../lib/prisma.js";
 import { buildApp } from "./server.js";
 import "dotenv/config.js";
+import { logger } from "../logger/pino.js";
 
 const HOST: string = process.env.HOST || 'localhost';
 const PORT: number = Number(process.env.PORT || 3000);
@@ -15,10 +16,6 @@ try {
         host: HOST,
         port: PORT
 
-    }, (): void => {
-
-        console.log(`Running at http://${HOST}:${PORT}/`);
-
     });
 
 } catch (error: unknown) {
@@ -29,7 +26,7 @@ try {
 
     };
 
-    console.error(error);
+    logger.error(error);
 
     process.exit(1);
 

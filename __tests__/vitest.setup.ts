@@ -7,6 +7,7 @@ import { FastifyInstance } from 'fastify';
 import { buildApp } from '../src/api/server';
 import supertest, { Test } from 'supertest';
 import TestAgent from 'supertest/lib/agent';
+import { logger } from '../src/logger/pino.js';
 
 vi.setConfig({
 
@@ -32,14 +33,14 @@ const waitForDatabase: () => Promise<void> = async (): Promise<void> => {
         try {
 
             await prisma.$connect();
-            console.log('✅ Database connection successful!');
+            logger.info('✅ Database connection successful!');
             await prisma.$disconnect();
             return;
 
         } catch (error: unknown) {
 
             --retries;
-            console.log(`...Database not ready, retrying in 2s. (${retries} retries left)`);
+            logger.warn(`...Database not ready, retrying in 2s. (${retries} retries left)`);
             await new Promise(res => setTimeout(res, 2000));
 
         };
@@ -136,7 +137,7 @@ afterAll(async (): Promise<void> => {
 
     if (fastifyApp) {
 
-        console.log('Closing fastify');
+        logger.info("Closing fastify");
 
         await fastifyApp.close();
 

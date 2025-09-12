@@ -16,7 +16,23 @@ export function buildApp(prismaClient: PrismaClient): FastifyInstance {
 
     const app: FastifyInstance = fastify({
 
-        logger: true
+        logger: {
+
+            levelComparison: "DESC",
+            transport: {
+
+                target: "pino-pretty",
+                options: {
+
+                    colorize: true,
+                    translateTime: "UTC:yyyy-mm-dd HH:MM:ss.l o",
+                    ignore: "pid,hostname",
+
+                }
+
+            }
+
+        }
 
     });
 

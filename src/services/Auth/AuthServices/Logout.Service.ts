@@ -1,6 +1,7 @@
 import { FastifyReply } from "fastify/types/reply";
 import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
+import { logger } from "../../../logger/pino.js";
 
 export class LogoutService {
 
@@ -9,6 +10,7 @@ export class LogoutService {
         try {
 
             reply.cookie("jwt", "", { maxAge: 0 });
+
             return reply.status(StatusCodes.OK).send({
 
                 message: "Logged out successfully"
@@ -17,7 +19,7 @@ export class LogoutService {
 
         } catch (error: unknown) {
 
-            console.error({
+            logger.error({
 
                 message: "Error during logout",
                 error

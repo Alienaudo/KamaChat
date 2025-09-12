@@ -4,6 +4,8 @@ import { FastifyReply } from "fastify/types/reply";
 import { FastifyRequest } from "fastify/types/request";
 import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
 import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
+import { filterXSS } from "xss";
+import { logger } from "../../../logger/pino.js";
 
 export class UpdateChannelNameService {
 
@@ -85,7 +87,7 @@ export class UpdateChannelNameService {
                     },
                     data: {
 
-                        name: newName
+                        name: filterXSS(newName)
 
                     },
                     select: {
@@ -112,6 +114,8 @@ export class UpdateChannelNameService {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
 
+                logger.error(error);
+
                 return reply.status(StatusCodes.FORBIDDEN).send({
 
                     error: "Channel not found",
@@ -121,7 +125,7 @@ export class UpdateChannelNameService {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Failed to update channel name",
                 channelId: request.body.id,

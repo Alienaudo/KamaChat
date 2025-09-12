@@ -7,6 +7,7 @@ import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { generateToken } from "../../../utils/generateToken.js";
 import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
+import { logger } from "../../../logger/pino.js";
 
 export class LoginService {
 
@@ -101,6 +102,8 @@ export class LoginService {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
 
+                logger.error(error);
+
                 return reply.status(StatusCodes.NOT_FOUND).send({
 
                     error: {
@@ -114,7 +117,7 @@ export class LoginService {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Error during login",
                 error: error

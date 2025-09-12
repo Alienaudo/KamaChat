@@ -6,6 +6,8 @@ import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
 import { SignupRequestBody } from "../../../interfaces/SignupRequestBody.Interface.js";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
 import { updateName } from "../../../interfaces/Auth.Interface.js";
+import { filterXSS } from "xss";
+import { logger } from "../../../logger/pino.js";
 
 export class UpdateProfName {
 
@@ -35,7 +37,7 @@ export class UpdateProfName {
 
             if (!profId) {
 
-                console.error("User ID is required");
+                logger.error("User ID is required");
 
                 return reply.status(StatusCodes.BAD_REQUEST).send({
 
@@ -60,7 +62,7 @@ export class UpdateProfName {
                     },
                     data: {
 
-                        name: newName
+                        name: filterXSS(newName)
 
                     },
                     select: {
@@ -82,12 +84,7 @@ export class UpdateProfName {
 
             if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
 
-                console.error({
-
-                    message: "User not found",
-                    error: error.message
-
-                });
+                logger.error(error);
 
                 return reply.status(StatusCodes.NOT_FOUND).send({
 
@@ -102,7 +99,7 @@ export class UpdateProfName {
 
             };
 
-            console.error({
+            logger.error({
 
                 message: "Error during update profile name",
                 error: error
