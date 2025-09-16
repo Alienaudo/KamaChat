@@ -3,7 +3,7 @@ dist
 coverage
 /generated/prisma
 
-.env
+!.env
 .env.test
 /src/rabbitmq-certs/*
 !/src/rabbitmq-certs/.gitkeep

@@ -25,7 +25,7 @@
     "@fastify/error": "^4.2.0",
     "@fastify/multipart": "^9.2.1",
     "@fastify/rate-limit": "^10.3.0",
-    "@prisma/client": "6.10.1",
+    "@prisma/client": "6.16.2",
     "@sapphire/snowflake": "^3.5.5",
     "@types/busboy": "^1.5.4",
     "amqplib": "^0.10.9",
