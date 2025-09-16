@@ -4,6 +4,7 @@ import { FastifyInstance } from "fastify/types/instance";
 import { FastifyPluginAsync } from "fastify/types/plugin";
 import { RawServerDefault } from "fastify";
 import { ProtectMiddleware } from "../../../middlewares/ProtectRouter.Middleware.js";
+import { type } from "arktype";
 
 declare module 'fastify' {
 
@@ -38,6 +39,20 @@ class ChannelRoute {
         fastify.post('/create/:name', {
 
             preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                params: type({
+
+                    name: "string <= 25"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
             config: {
 
                 rateLimit: {
@@ -54,6 +69,20 @@ class ChannelRoute {
         fastify.put('/update/picture/:id', {
 
             preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                params: type({
+
+                    id: "number"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
             config: {
 
                 rateLimit: {
@@ -70,6 +99,21 @@ class ChannelRoute {
         fastify.put('/update/name', {
 
             preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                params: type({
+
+                    id: "number",
+                    name: "string <= 25"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
             config: {
 
                 rateLimit: {
@@ -83,12 +127,136 @@ class ChannelRoute {
 
         }, this.channelController.updateChannelName);
 
+        fastify.put('/update/description', {
+
+            preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    id: "number",
+                    name: "string <= 25",
+                    description: "string <= 300"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
+            config: {
+
+                rateLimit: {
+
+                    max: 3,
+                    timeWindow: '30 minute'
+
+                }
+
+            }
+        }, this.channelController.updateChannelDescription);
 
         fastify.post('/addMember/:id', {
 
-            preHandler: this.protectMiddleware.protect
+            preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    id: "string"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            }
 
         }, this.channelController.addMembersToChannel);
+
+        fastify.post('/turnInToAdmin/:id', {
+
+            preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    id: "string"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            }
+
+        }, this.channelController.makeMemberAdmin);
+
+        fastify.post('/turnInToMember/:id', {
+
+            preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    id: "string"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            }
+
+        }, this.channelController.makeAdminMember);
+
+        fastify.delete('/removeMember/:id', {
+
+            preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    id: "string"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            }
+
+        }, this.channelController.removeMember);
+
+        fastify.delete('/deleteChannel/:id', {
+
+            preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    id: "string"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            }
+
+        }, this.channelController.deleteChannel);
 
     };
 
