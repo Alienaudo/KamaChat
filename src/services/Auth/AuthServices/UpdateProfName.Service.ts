@@ -3,7 +3,6 @@ import { FastifyReply } from "fastify/types/reply";
 import { FastifyRequest } from "fastify/types/request";
 import { ReasonPhrases } from "http-status-codes/build/es/reason-phrases.js";
 import { StatusCodes } from "http-status-codes/build/es/status-codes.js";
-import { SignupRequestBody } from "../../../interfaces/SignupRequestBody.Interface.js";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
 import { updateName } from "../../../interfaces/Auth.Interface.js";
 import { filterXSS } from "xss";
@@ -21,7 +20,6 @@ export class UpdateProfName {
 
     public update: updateName = async (request: FastifyRequest<{
 
-        Body: SignupRequestBody,
         Params: {
 
             newName: string
