@@ -4,6 +4,7 @@ import { FastifyInstance } from "fastify/types/instance.js";
 import { FastifyPluginAsync } from "fastify/types/plugin.js";
 import { RawServerDefault } from "fastify";
 import { ProtectMiddleware } from "../../../middlewares/ProtectRouter.Middleware.js";
+import { type } from "arktype";
 
 class AuthRoutes {
 
@@ -19,10 +20,45 @@ class AuthRoutes {
 
     public authRoutes = async (fastify: FastifyInstance<RawServerDefault>): Promise<void> => {
 
-        fastify.post('/signup', this.authController.signup);
+        fastify.post('/signup', {
+
+            schema: {
+
+                body: type({
+
+                    email: "string.email",
+                    nick: "string <= 25",
+                    name: "string <= 15",
+                    password: "string >= 8",
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            }
+
+        }, this.authController.signup);
 
         fastify.post('/login', {
 
+            schema: {
+
+                body: type({
+
+                    email: "string.email",
+                    password: "string > 6",
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
             config: {
 
                 rateLimit: {
@@ -58,6 +94,20 @@ class AuthRoutes {
         fastify.put('/update-profile-name/:newName', {
 
             preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                params: type({
+
+                    newName: "string <= 25"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
             config: {
 
                 rateLimit: {
@@ -75,6 +125,20 @@ class AuthRoutes {
         fastify.put('/update-profileEmail', {
 
             preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    newEmail: "string.email"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
             config: {
 
                 rateLimit: {
@@ -92,6 +156,21 @@ class AuthRoutes {
         fastify.put('/update-profilePassword', {
 
             preHandler: this.protectMiddleware.protect,
+            schema: {
+
+                body: type({
+
+                    email: "string.email",
+                    newPassword: "string > 6"
+
+                })
+                    .toJsonSchema({
+
+                        dialect: "http://json-schema.org/draft-07/schema",
+
+                    }),
+
+            },
             config: {
 
                 rateLimit: {
